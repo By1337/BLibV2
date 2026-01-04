@@ -94,7 +94,7 @@ public class ClasspathUtil {
 
                 jos.putNextEntry(newEntry);
                 try (var entryStream = jar.getInputStream(entry)){
-                    if (name.endsWith(".class")) {
+                    if (name.endsWith(".class") && !name.endsWith("module-info.class")) {
                         byte[] clazz = entryStream.readAllBytes();
                         @SuppressWarnings("deprecation")
                         byte[] patched = Bukkit.getUnsafe()

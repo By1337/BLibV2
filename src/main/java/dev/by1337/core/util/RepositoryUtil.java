@@ -58,7 +58,6 @@ public class RepositoryUtil {
                 .resolve(groupId.replace('.', '/'))
                 .resolve(artifactId)
                 .resolve(version);
-
         try {
             Files.createDirectories(resultFolder);
         } catch (IOException e) {

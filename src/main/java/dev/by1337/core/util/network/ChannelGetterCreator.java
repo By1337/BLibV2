@@ -1,6 +1,7 @@
 package dev.by1337.core.util.network;
 
 import dev.by1337.core.BDev;
+import dev.by1337.core.util.asm.AsmUtils;
 import io.netty.channel.Channel;
 import org.bukkit.entity.Player;
 import org.objectweb.asm.ClassWriter;
@@ -215,12 +216,7 @@ public class ChannelGetterCreator {
                 n.accept(cw);
                 byte[] arr = cw.toByteArray();
 
-                try {
-                    File generated = new File(BDev.HOME_DIR.toFile(), ".generated");
-                    generated.mkdirs();
-                    Files.write(generated.toPath().resolve("ChannelGetter.class"), arr);
-                } catch (Exception ignored) {
-                }
+                AsmUtils.dumpGeneratedClass(arr, "ChannelGetter");
 
                 Class<?> cl = MethodHandles.lookup().defineHiddenClass(arr, true).lookupClass();
                 return (ChannelGetter) cl.getConstructor().newInstance();

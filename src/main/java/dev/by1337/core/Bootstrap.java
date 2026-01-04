@@ -2,11 +2,13 @@ package dev.by1337.core;
 
 import dev.by1337.core.util.RepositoryUtil;
 import dev.by1337.core.util.reflect.ClasspathUtil;
+import dev.by1337.core.util.text.minimessage.MiniMessage;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
@@ -17,8 +19,15 @@ class Bootstrap {
     public static void bootstrap(Plugin plugin) {
         Path libraries = plugin.getDataFolder().toPath().resolve(".libraries");
         libraries.toFile().mkdirs();
-        if (!hasClass("org.objectweb.asm.tree.ClassNode") || true) {
+        if (!hasClass("org.objectweb.asm.tree.ClassNode")) {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm:9.9.1", libraries));
+            ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-tree:9.9.1", libraries));
+            ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-commons:9.9.1", libraries));
+        }
+        try {
+            MethodHandles.lookup().ensureInitialized(MiniMessage.class);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
         //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.fparticle:bukkit:1.5", libraries));
         //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.yaml:byaml-bukkit:1.1", libraries));
@@ -27,7 +36,7 @@ class Bootstrap {
             Class<?> boot = Class.forName("dev.by1337.core.BridgeBootstrapper");
             boot.getMethod("bootstrap").invoke(null);
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to load nms bridge",ex);
+            throw new RuntimeException("Failed to load nms bridge", ex);
         }
     }
 
