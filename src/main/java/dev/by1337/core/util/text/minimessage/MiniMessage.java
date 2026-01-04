@@ -11,23 +11,17 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
 
 public class MiniMessage {
-    private static final Function<String, Component> minimessage;
+    private static final Function<String, Component> MINI_MESSAGE;
 
     public static Component deserialize(String text) {
-        return minimessage.apply(text);
-    }
-
-    public static String serialize(String text) {
-        return GsonComponentSerializer.gson().serialize(MiniMessage.deserialize(text));
+        return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
     }
 
     static {
@@ -51,7 +45,7 @@ public class MiniMessage {
                 throw new ExceptionInInitializerError(e);
             }
         }
-        minimessage = fun;
+        MINI_MESSAGE = fun;
     }
 
 
