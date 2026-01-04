@@ -24,6 +24,9 @@ class Bootstrap {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-tree:9.9.1", libraries));
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-commons:9.9.1", libraries));
         }
+        if (!hasClass("org.joml.Quaternionf")){
+            ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.joml:joml:1.10.8", libraries));
+        }
         try {
             MethodHandles.lookup().ensureInitialized(MiniMessage.class);
         } catch (IllegalAccessException e) {

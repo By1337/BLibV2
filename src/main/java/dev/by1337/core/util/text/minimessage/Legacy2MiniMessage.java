@@ -3,6 +3,7 @@ package dev.by1337.core.util.text.minimessage;
 public class Legacy2MiniMessage {
 
     public static String convert(String s) {
+        if (!s.contains("&") && !s.contains("§")) return s;
         StringBuilder sb = new StringBuilder();
         Exp exp = new Exp(s);
         while (exp.hasNext()) {

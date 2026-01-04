@@ -24,7 +24,7 @@ import java.util.jar.JarOutputStream;
 
 public class ClasspathUtil {
     private static final MethodHandle ADD_URL;
-    private static final Logger log = LoggerFactory.getLogger(ClasspathUtil.class);
+    private static final Logger log = LoggerFactory.getLogger("BDevCore");
 
     public static void addUrl(Plugin plugin, Path path) {
         try {
@@ -35,6 +35,7 @@ public class ClasspathUtil {
                 log.error("Failed to fix jar {} for {}", path, plugin.getName(), e);
                 file = path.toFile();
             }
+            log.info("Loading library {}", file.toPath());
             addUrl(plugin, file.toPath().toUri().toURL());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
