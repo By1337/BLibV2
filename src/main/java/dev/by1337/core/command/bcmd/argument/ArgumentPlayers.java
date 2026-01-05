@@ -1,4 +1,4 @@
-package dev.by1337.core.util.command.bcmd.argument;
+package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
 import org.bukkit.Bukkit;

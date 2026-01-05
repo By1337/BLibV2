@@ -1,4 +1,4 @@
-package dev.by1337.core.util.command.bcmd.argument;
+package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
 import org.bukkit.Keyed;
@@ -11,22 +11,27 @@ import java.util.Locale;
 
 public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
 
-    private final NamespacedKeyTrie<E> lookup = new NamespacedKeyTrie<>();
+    protected final NamespacedKeyTrie<E> lookup = new NamespacedKeyTrie<>();
+
+    protected ArgumentRegistry(String name) {
+        super(name);
+    }
 
     public ArgumentRegistry(String name, Registry<E> registry) {
-
         this(name, registry, false);
     }
 
     public ArgumentRegistry(String name, Registry<E> registry, boolean noNamespace) {
         super(name);
+        build(registry, noNamespace);
+    }
 
+    protected void build(Registry<E> registry, boolean noNamespace) {
         registry.iterator().forEachRemaining(key -> {
             lookup.insert(key.getKey().getKey(), key);
             if (noNamespace) return;
             lookup.insert(key.getKey().toString(), key);
         });
-
     }
 
     @Override
@@ -61,7 +66,7 @@ public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
         return true;
     }
 
-    private static class NamespacedKeyTrie<V> {
+    protected static class NamespacedKeyTrie<V> {
         private static final int ALPHABET_SIZE = 40;
         private static final char[] INDEX_TO_CHAR = new char[ALPHABET_SIZE];
         private static final int[] CHAR_TO_INDEX = new int[128]; // ASCII достаточно
@@ -90,8 +95,13 @@ public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
             CHAR_TO_INDEX[':'] = idx++;
         }
 
-        private final TrieNode<V> root = new TrieNode<V>();
+        private TrieNode<V> root = new TrieNode<V>();
         private int maxWordLength = 0;
+
+        public void clear() {
+            root = new TrieNode<V>();
+            maxWordLength = 0;
+        }
 
         public void insert(String word, V value) {
             TrieNode<V> node = root;

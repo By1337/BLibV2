@@ -1,4 +1,4 @@
-package dev.by1337.core.util.command.bcmd;
+package dev.by1337.core.command.bcmd;
 
 
 import com.destroystokyo.paper.event.brigadier.AsyncPlayerSendSuggestionsEvent;
