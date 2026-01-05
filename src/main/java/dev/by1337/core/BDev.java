@@ -1,6 +1,5 @@
 package dev.by1337.core;
 
-import dev.by1337.core.util.text.minimessage.MiniMessage;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -19,7 +18,6 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
     }
 
     @Override

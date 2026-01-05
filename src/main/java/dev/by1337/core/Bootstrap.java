@@ -46,7 +46,7 @@ class Bootstrap {
     private static void loadNMSBridges(Plugin plugin) {
         File outFolder = new File(plugin.getDataFolder(), ".bridges");
         outFolder.mkdirs();
-        String bridgeName = "bridge-" + ServerVersion.CURRENT_ID + ".jar";
+        String bridgeName = "bridge-" + plugin.getDescription().getVersion() + "+" + ServerVersion.CURRENT_ID + ".jar";
         File file = new File(outFolder, bridgeName);
         if (!file.exists()) {
             try (var in = getInputStream("bridges/" + bridgeName)) {

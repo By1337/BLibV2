@@ -24,7 +24,7 @@ public class ArgumentDynamicRegistry<C, E extends Keyed> extends ArgumentRegistr
         this.noNamespace = noNamespace;
     }
 
-    private void rebuildIfNeeded() {
+    protected void rebuildIfNeeded() {
         var actual = registry.get();
         if (last != actual) {
             last = actual;

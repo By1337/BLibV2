@@ -4,6 +4,7 @@ import dev.by1337.core.util.command.BukkitCommandRegister;
 import dev.by1337.core.util.inventory.InventoryUtil;
 import dev.by1337.core.util.inventory.ItemStackSerializer;
 import dev.by1337.core.util.world.BlockEntityUtil;
+import org.bukkit.potion.PotionEffectType;
 
 public class BCore {
     static BlockEntityUtil blockEntityUtil;
