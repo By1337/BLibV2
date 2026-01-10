@@ -1,4 +1,4 @@
-package dev.by1337.core.util.registry;
+package dev.by1337.core.bridge.registry;
 
 
 import dev.by1337.yaml.BukkitCodecs;

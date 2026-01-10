@@ -1,4 +1,4 @@
-package dev.by1337.core.util.command;
+package dev.by1337.core.bridge.command;
 
 import org.bukkit.command.defaults.BukkitCommand;
 

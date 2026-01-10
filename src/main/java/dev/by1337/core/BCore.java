@@ -1,10 +1,9 @@
 package dev.by1337.core;
 
-import dev.by1337.core.util.command.BukkitCommandRegister;
-import dev.by1337.core.util.inventory.InventoryUtil;
-import dev.by1337.core.util.inventory.ItemStackSerializer;
-import dev.by1337.core.util.world.BlockEntityUtil;
-import org.bukkit.potion.PotionEffectType;
+import dev.by1337.core.bridge.command.BukkitCommandRegister;
+import dev.by1337.core.bridge.inventory.InventoryUtil;
+import dev.by1337.core.bridge.inventory.ItemStackSerializer;
+import dev.by1337.core.bridge.world.BlockEntityUtil;
 
 public class BCore {
     static BlockEntityUtil blockEntityUtil;

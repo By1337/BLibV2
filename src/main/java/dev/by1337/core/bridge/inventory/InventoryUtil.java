@@ -1,4 +1,4 @@
-package dev.by1337.core.util.inventory;
+package dev.by1337.core.bridge.inventory;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;

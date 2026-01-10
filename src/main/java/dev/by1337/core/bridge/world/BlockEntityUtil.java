@@ -1,6 +1,6 @@
-package dev.by1337.core.util.world;
+package dev.by1337.core.bridge.world;
 
-import dev.by1337.core.util.NMSBridgeTest;
+import dev.by1337.core.bridge.NMSBridgeTest;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

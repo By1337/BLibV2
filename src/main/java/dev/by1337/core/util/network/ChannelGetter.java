@@ -7,6 +7,10 @@ import org.bukkit.entity.Player;
 public interface ChannelGetter {
     Channel getChannel(Player pl);
 
+    static Channel get(Player pl) {
+        return Impl.getChannel(pl);
+    }
+
     class Impl {
         private static ChannelGetter channelGetter;
 

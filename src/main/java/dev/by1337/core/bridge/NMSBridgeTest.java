@@ -1,4 +1,4 @@
-package dev.by1337.core.util;
+package dev.by1337.core.bridge;
 
 import org.bukkit.entity.Player;
 

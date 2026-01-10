@@ -1,6 +1,6 @@
-package dev.by1337.core.util.inventory;
+package dev.by1337.core.bridge.inventory;
 
-import dev.by1337.core.util.NMSBridgeTest;
+import dev.by1337.core.bridge.NMSBridgeTest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
