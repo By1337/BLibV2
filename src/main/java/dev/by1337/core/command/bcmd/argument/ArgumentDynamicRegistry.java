@@ -5,20 +5,19 @@ import dev.by1337.cmd.CommandMsgError;
 import dev.by1337.cmd.CommandReader;
 import dev.by1337.cmd.SuggestionsList;
 import org.bukkit.Keyed;
-import org.bukkit.Registry;
 
 import java.util.function.Supplier;
 
 public class ArgumentDynamicRegistry<C, E extends Keyed> extends ArgumentRegistry<C, E> {
-    private final Supplier<Registry<E>> registry;
+    private final Supplier<Iterable<E>> registry;
     private final boolean noNamespace;
-    private Registry<E> last;
+    private Iterable<E> last;
 
-    public ArgumentDynamicRegistry(String name, Supplier<Registry<E>> registry) {
+    public ArgumentDynamicRegistry(String name, Supplier<Iterable<E>> registry) {
         this(name, registry, false);
     }
 
-    public ArgumentDynamicRegistry(String name, Supplier<Registry<E>> registry, boolean noNamespace) {
+    public ArgumentDynamicRegistry(String name, Supplier<Iterable<E>> registry, boolean noNamespace) {
         super(name);
         this.registry = registry;
         this.noNamespace = noNamespace;

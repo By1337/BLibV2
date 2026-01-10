@@ -9,19 +9,27 @@ import java.util.UUID;
 
 public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
 
+    private final boolean single;
+
     public ArgumentPlayers(String name) {
         super(name);
+        single = false;
+    }
+    public ArgumentPlayers(String name, boolean single) {
+        super(name);
+        this.single = single;
     }
 
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
-        if (str.equals("-me") && (ctx instanceof Player pl)) {
-            out.put(name, List.of(pl));
+        if ((str.equals("-all") || str.equals("*")) && !single) {
+            out.put(name, Bukkit.getOnlinePlayers());
             return;
         }
-        if (str.equals("-all") || str.equals("*")) {
-            out.put(name, Bukkit.getOnlinePlayers());
+
+        if (str.equals("-me") && (ctx instanceof Player pl)) {
+            out.put(name, List.of(pl));
             return;
         }
         var pl = Bukkit.getPlayerExact(str);
@@ -41,12 +49,14 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
     @Override
     public void suggest(C ctx, CommandReader reader, SuggestionsList suggestions, ArgumentMap args) throws CommandMsgError {
         String str = reader.readString().toLowerCase();
-        suggestions.suggest("-all");
-        suggestions.suggest("*");
+        if (!single){
+            suggestions.suggest("-all");
+            suggestions.suggest("*");
+        }
         if (ctx instanceof Player) {
             suggestions.suggest("-me");
         }
-        if (str.equals("-all") || str.equals("*")) {
+        if ((str.equals("-all") || str.equals("*")) && !single) {
             args.put(name, Bukkit.getOnlinePlayers());
             return;
         }

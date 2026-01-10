@@ -17,16 +17,16 @@ public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
         super(name);
     }
 
-    public ArgumentRegistry(String name, Registry<E> registry) {
+    public ArgumentRegistry(String name, Iterable<E> registry) {
         this(name, registry, false);
     }
 
-    public ArgumentRegistry(String name, Registry<E> registry, boolean noNamespace) {
+    public ArgumentRegistry(String name, Iterable<E> registry, boolean noNamespace) {
         super(name);
         build(registry, noNamespace);
     }
 
-    protected void build(Registry<E> registry, boolean noNamespace) {
+    protected void build(Iterable<E> registry, boolean noNamespace) {
         registry.iterator().forEachRemaining(key -> {
             lookup.insert(key.getKey().getKey(), key);
             if (noNamespace) return;

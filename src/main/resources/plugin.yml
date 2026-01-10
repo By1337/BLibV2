@@ -5,3 +5,6 @@ author: By1337
 api-version: '1.16'
 loadbefore:
   -  BLib
+permissions:
+  bdev.*:
+    default: op
