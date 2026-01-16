@@ -1,5 +1,6 @@
 package dev.by1337.core;
 
+import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import dev.by1337.cmd.Command;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
 import dev.by1337.core.bridge.nbt.NbtBridge;
@@ -7,6 +8,7 @@ import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.command.bcmd.CommandWrapper;
 import dev.by1337.core.command.bcmd.TestCommand;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
+import dev.by1337.core.legacy.BLibBridge;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,11 +22,17 @@ public class BDev extends JavaPlugin {
     public static Path HOME_DIR;
     private CommandWrapper commands;
 
-    @Override
-    public void onLoad() {
+    public BDev() {
         getDataFolder().mkdirs();
         HOME_DIR = getDataFolder().toPath();
         Bootstrap.bootstrap(this);
+        BLibBridge.bootstrap(this);
+    }
+
+    @Override
+    public void onLoad() {
+
+        BLibBridge.load(this);
     }
 
     @Override
@@ -32,11 +40,13 @@ public class BDev extends JavaPlugin {
         commands = new CommandWrapper(create(), this);
         commands.setPermission("bdev.use");
         commands.register();
+        BLibBridge.onEnable();
     }
 
     @Override
     public void onDisable() {
         commands.unregister();
+        BLibBridge.onDisable();
     }
 
     private Command<CommandSender> create() {

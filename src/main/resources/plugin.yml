@@ -1,10 +1,8 @@
-name: BDevCore
+name: BLib
 main: dev.by1337.core.BDev
 version: '${version}'
 author: By1337
 api-version: '1.16'
-loadbefore:
-  -  BLib
 permissions:
   bdev.*:
     default: op
