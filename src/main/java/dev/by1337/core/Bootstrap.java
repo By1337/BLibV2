@@ -48,7 +48,7 @@ class Bootstrap {
         outFolder.mkdirs();
         String bridgeName = "bridge-" + plugin.getDescription().getVersion() + "+" + ServerVersion.CURRENT_ID + ".jar";
         File file = new File(outFolder, bridgeName);
-        if (!file.exists()) {
+        if (!file.exists() || BDev.IS_SNAPSHOT) {
             try (var in = getInputStream("bridges/" + bridgeName)) {
                 if (in == null) {
                     throw new FileNotFoundException("Unable to find bridges/" + bridgeName);
@@ -60,7 +60,7 @@ class Bootstrap {
                 throw new RuntimeException("Failed to load nms bridge " + bridgeName, e);
             }
         }
-        ClasspathUtil.addUrl(plugin, file.toPath());
+        ClasspathUtil.addUrl(plugin, file.toPath(), BDev.IS_SNAPSHOT);
     }
 
 

@@ -3,6 +3,7 @@ package dev.by1337.core;
 import dev.by1337.core.bridge.command.BukkitCommandRegister;
 import dev.by1337.core.bridge.inventory.InventoryUtil;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
+import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 
 public class BCore {
@@ -10,6 +11,7 @@ public class BCore {
     static ItemStackSerializer itemStackSerializer;
     static InventoryUtil inventoryUtil;
     static BukkitCommandRegister bukkitCommandRegister;
+    static NbtBridge nbtBridge;
 
     public static BlockEntityUtil getBlockEntityUtil() {
         return blockEntityUtil;
@@ -25,5 +27,9 @@ public class BCore {
 
     public static BukkitCommandRegister getBukkitCommandRegister() {
         return bukkitCommandRegister;
+    }
+
+    public static NbtBridge getNbtBridge() {
+        return nbtBridge;
     }
 }

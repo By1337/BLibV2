@@ -8,7 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.Unsafe;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -19,7 +20,6 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
 public class ClasspathUtil {
@@ -27,10 +27,13 @@ public class ClasspathUtil {
     private static final Logger log = LoggerFactory.getLogger("BDevCore");
 
     public static void addUrl(Plugin plugin, Path path) {
+        addUrl(plugin, path, false);
+    }
+    public static void addUrl(Plugin plugin, Path path, boolean refix) {
         try {
             File file;
             try {
-                file = fixJar(path.toFile(), plugin);
+                file = fixJar(path.toFile(), plugin, refix);
             } catch (Exception e) {
                 log.error("Failed to fix jar {} for {}", path, plugin.getName(), e);
                 file = path.toFile();
@@ -50,14 +53,14 @@ public class ClasspathUtil {
         }
     }
 
-    private static File fixJar(File file, Plugin plugin) throws Exception {
+    private static File fixJar(File file, Plugin plugin, boolean refix) throws Exception {
         if (!file.getName().endsWith(".jar")) return file;
 
         File out = new File(
                 file.getParentFile(),
                 ".fixed/" + ServerVersion.CURRENT_ID + "/" + file.getName()
         );
-        if (out.exists()) return out;
+        if (out.exists() && !refix) return out;
         out.getParentFile().mkdirs();
 
         try (
@@ -73,9 +76,9 @@ public class ClasspathUtil {
             } else {
                 descriptionFile = plugin.getDescription();
             }
-            var iterator =  jar.entries();
-            while (iterator.hasMoreElements()){
-                JarEntry entry =  iterator.nextElement();
+            var iterator = jar.entries();
+            while (iterator.hasMoreElements()) {
+                JarEntry entry = iterator.nextElement();
                 String name = entry.getName();
 
                 if (name.startsWith("META-INF/")
@@ -94,7 +97,7 @@ public class ClasspathUtil {
                 newEntry.setMethod(JarEntry.DEFLATED);
 
                 jos.putNextEntry(newEntry);
-                try (var entryStream = jar.getInputStream(entry)){
+                try (var entryStream = jar.getInputStream(entry)) {
                     if (name.endsWith(".class") && !name.endsWith("module-info.class")) {
                         byte[] clazz = entryStream.readAllBytes();
                         @SuppressWarnings("deprecation")

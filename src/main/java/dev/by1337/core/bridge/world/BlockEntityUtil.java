@@ -26,10 +26,10 @@ public interface BlockEntityUtil {
      * block entity data (usually NBT). If {@code entity} is {@code null}, the block
      * is placed without any associated block entity.</p>
      *
-     * @param location       target world location
-     * @param id             internal block id
-     * @param entity         serialized block entity data, or {@code null}
-     * @param applyPhysics   whether to apply block physics during placement
+     * @param location     target world location
+     * @param id           internal block id
+     * @param entity       serialized block entity data, or {@code null}
+     * @param applyPhysics whether to apply block physics during placement
      */
     void setBlock(Location location, int id, byte @Nullable [] entity, boolean applyPhysics);
 
@@ -89,13 +89,17 @@ public interface BlockEntityUtil {
             try {
                 block.setType(Material.CHEST, false);
 
-                if (!(block.getState() instanceof Chest chest)) {
+                if (!(block.getState(false) instanceof Chest chest)) {
                     throw new IllegalStateException("Chest was not placed");
                 }
 
                 ItemStack dirt = new ItemStack(Material.DIRT);
-                chest.getBlockInventory().setItem(0, dirt);
-                chest.update(true);
+                chest.getInventory().setItem(0, dirt);
+                chest.update(true, false);
+
+                if (!Objects.equals(dirt, ((Chest) block.getState(false)).getInventory().getItem(0))) {
+                    throw new IllegalStateException("setItem did not set dirt");
+                }
 
                 BlockInfo captured = bridge.getBlock(location);
                 if (captured == null) {
@@ -104,15 +108,13 @@ public interface BlockEntityUtil {
 
                 bridge.tryClear(location);
 
-                Chest afterClear = (Chest) block.getState();
-                if (!isAir(afterClear.getBlockInventory().getItem(0))) {
+                if (!isAir(((Chest) block.getState(false)).getInventory().getItem(0))) {
                     throw new IllegalStateException("tryClear did not clear inventory");
                 }
 
                 bridge.setBlock(location, captured, false);
 
-                Chest restored = (Chest) block.getState();
-                if (!Objects.equals(dirt, restored.getBlockInventory().getItem(0))) {
+                if (!Objects.equals(dirt, ((Chest) block.getState(false)).getInventory().getItem(0))) {
                     throw new IllegalStateException("setBlock did not restore inventory");
                 }
 
