@@ -20,14 +20,31 @@ public interface BlockEntityUtil {
     }
 
     /**
-     * Sets a block at the given location using a raw block id and serialized block entity.
+     * Sets a block at the given location using a raw internal block id and optional
+     * serialized block entity data.
+     *
+     * <p>This method is functionally equivalent to
+     * {@link Block#setType(Material, boolean)}, but additionally supports explicitly
+     * setting a {@link org.bukkit.block.BlockState} / BlockEntity from serialized data.</p>
+     *
+     * <p><strong>Version-specific behavior:</strong>
+     * The underlying block placement logic differs between Minecraft versions.
+     * For example, in Minecraft 1.16.5, replacing a container block (such as a chest)
+     * via {@code setBlock} may cause its contents to be dropped, while in Minecraft
+     * 1.21.11 the same operation does not produce any drops. Identical version-dependent
+     * behavior exists for {@link Block#setType(Material, boolean)} and related APIs.</p>
+     *
+     * <p>This method performs a low-level block state mutation and does <em>not</em>
+     * represent a gameplay block break. As such, block drops, loot tables, and block
+     * break events are not guaranteed to be triggered and must be handled explicitly
+     * by the caller if required.</p>
      *
      * <p>The {@code entity} parameter represents implementation-specific serialized
-     * block entity data (usually NBT). If {@code entity} is {@code null}, the block
+     * block entity data. If {@code entity} is {@code null}, the block
      * is placed without any associated block entity.</p>
      *
-     * @param location     target world location
-     * @param id           internal block id
+     * @param location     the target world location
+     * @param id           the internal block id to set
      * @param entity       serialized block entity data, or {@code null}
      * @param applyPhysics whether to apply block physics during placement
      */
@@ -87,7 +104,7 @@ public interface BlockEntityUtil {
             BlockInfo original = bridge.getBlock(location);
 
             try {
-                block.setType(Material.CHEST, false);
+                block.setType(Material.CHEST, true);
 
                 if (!(block.getState(false) instanceof Chest chest)) {
                     throw new IllegalStateException("Chest was not placed");

@@ -16,16 +16,20 @@ public class BLibBridge {
     public static void bootstrap(Plugin plugin) {
         loadBridge(plugin);
     }
-    public static void load(Plugin plugin) {
+
+    public static void load(Plugin plugin) throws Exception {
         try {
             bApiClass = Class.forName("org.by1337.blib.core.BApi");
             bApi = bApiClass.getConstructor(Plugin.class).newInstance(plugin);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            bApiClass = null;
+            bApi = null;
+            throw e;
         }
     }
 
     public static void onEnable() {
+        if (bApiClass == null) return;
         try {
             bApiClass.getMethod("onEnable").invoke(bApi);
         } catch (Exception e) {
@@ -34,6 +38,7 @@ public class BLibBridge {
     }
 
     public static void onDisable() {
+        if (bApiClass == null) return;
         try {
             bApiClass.getMethod("onDisable").invoke(bApi);
         } catch (Exception e) {

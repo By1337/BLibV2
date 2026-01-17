@@ -1,6 +1,5 @@
 package dev.by1337.core;
 
-import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import dev.by1337.cmd.Command;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
 import dev.by1337.core.bridge.nbt.NbtBridge;
@@ -31,8 +30,11 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onLoad() {
-
-        BLibBridge.load(this);
+        try {
+            BLibBridge.load(this);
+        } catch (Exception e) {
+            getSLF4JLogger().warn("Failed fo load legacy BLib!", e);
+        }
     }
 
     @Override
