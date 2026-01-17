@@ -6,6 +6,8 @@ import dev.by1337.core.util.text.minimessage.MiniMessage;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.invoke.MethodHandles;
@@ -16,6 +18,8 @@ import java.nio.file.Path;
 @ApiStatus.Internal
 class Bootstrap {
 
+    private static final Logger log = LoggerFactory.getLogger("BLib");
+
     public static void bootstrap(Plugin plugin) {
         Path libraries = plugin.getDataFolder().toPath().resolve(".libraries");
         libraries.toFile().mkdirs();
@@ -24,7 +28,7 @@ class Bootstrap {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-tree:9.9.1", libraries));
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.ow2.asm:asm-commons:9.9.1", libraries));
         }
-        if (!hasClass("org.joml.Quaternionf")){
+        if (!hasClass("org.joml.Quaternionf")) {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.joml:joml:1.10.8", libraries));
         }
         try {
@@ -34,7 +38,7 @@ class Bootstrap {
         }
         //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.fparticle:bukkit:1.5", libraries));
         //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.yaml:byaml-bukkit:1.1", libraries));
-        loadNMSBridges(plugin);
+        loadNMSBridge(plugin);
         try {
             Class<?> boot = Class.forName("dev.by1337.core.BridgeBootstrapper");
             boot.getMethod("bootstrap").invoke(null);
@@ -43,26 +47,47 @@ class Bootstrap {
         }
     }
 
-    private static void loadNMSBridges(Plugin plugin) {
+    private static void loadNMSBridge(Plugin plugin) {
+        String bridge = "bridge-" + plugin.getDescription().getVersion() + "+";
+        try {
+            loadNMSBridge(plugin, bridge + ServerVersion.CURRENT_ID + ".jar");
+        } catch (IOException e) {
+            if (ServerVersion.is1_20_6orNewer()) {
+                log.warn("Nms bridge for {} not found! Attempting to load for {}", ServerVersion.CURRENT_ID, ServerVersion.LastKnown.ID);
+                try {
+                    loadNMSBridge(plugin, bridge + ServerVersion.LastKnown.ID + ".jar");
+                } catch (IOException ignored) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static void loadNMSBridge(Plugin plugin, String bridgeName) throws IOException {
         File outFolder = new File(plugin.getDataFolder(), ".bridges");
         outFolder.mkdirs();
-        String bridgeName = "bridge-" + plugin.getDescription().getVersion() + "+" + ServerVersion.CURRENT_ID + ".jar";
         File file = new File(outFolder, bridgeName);
         if (!file.exists() || BDev.IS_SNAPSHOT) {
             try (var in = getInputStream("bridges/" + bridgeName)) {
                 if (in == null) {
-                    throw new FileNotFoundException("Unable to find bridges/" + bridgeName);
-                }
-                try (var out = new FileOutputStream(file)) {
-                    in.transferTo(out);
+                    if (file.exists()) {
+                        log.warn("Use bridge from {}", file);
+                    } else {
+                        throw new FileNotFoundException("Unable to find bridges/" + bridgeName);
+                    }
+                } else {
+                    try (var out = new FileOutputStream(file)) {
+                        in.transferTo(out);
+                    }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load nms bridge " + bridgeName, e);
+                throw new IOException("Failed to load nms bridge " + bridgeName, e);
             }
         }
         ClasspathUtil.addUrl(plugin, file.toPath(), BDev.IS_SNAPSHOT);
     }
-
 
     private static boolean hasClass(String className) {
         try {

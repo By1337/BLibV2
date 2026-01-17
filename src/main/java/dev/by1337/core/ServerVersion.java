@@ -46,6 +46,12 @@ public final class ServerVersion {
     public static final int V1_21_10 = toInt("1.21.10");
     public static final int V1_21_11 = toInt("1.21.11");
 
+    public static class LastKnown {
+        public static final String ID = "1.21.11";
+        public static final int VERSION = V1_21_11;
+        public static final int PROTOCOL = Protocol.V1_21_11;
+    }
+
     public static class Protocol {
         public static final int CURRENT = ServerVersion.CURRENT_PROTOCOL;
         public static final int V754 = 754;
