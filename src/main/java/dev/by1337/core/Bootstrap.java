@@ -36,7 +36,6 @@ class Bootstrap {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.fparticle:bukkit:1.5", libraries));
         //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.yaml:byaml-bukkit:1.1", libraries));
         loadNMSBridge(plugin);
         try {
