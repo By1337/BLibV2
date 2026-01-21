@@ -8,12 +8,14 @@ import dev.by1337.core.command.bcmd.CommandWrapper;
 import dev.by1337.core.command.bcmd.TestCommand;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.legacy.BLibBridge;
+import dev.by1337.core.util.network.ChannelGetter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 @ApiStatus.Internal
 public class BDev extends JavaPlugin {
@@ -63,6 +65,7 @@ public class BDev extends JavaPlugin {
                             new BlockEntityUtil.TestImpl().run(player, BCore.getBlockEntityUtil());
                             new NbtBridge.TestImpl().run(player, BCore.getNbtBridge());
                             player.sendMessage("done");
+                            player.sendMessage(Objects.toString(ChannelGetter.get(player)));
                         })
                 )
                 ;

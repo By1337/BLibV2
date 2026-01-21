@@ -1,6 +1,7 @@
 package dev.by1337.core;
 
 import dev.by1337.core.util.RepositoryUtil;
+import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.core.util.reflect.ClasspathUtil;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
 import org.bukkit.plugin.Plugin;
@@ -32,7 +33,9 @@ class Bootstrap {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.joml:joml:1.10.8", libraries));
         }
         try {
-            MethodHandles.lookup().ensureInitialized(MiniMessage.class);
+            var lookup = MethodHandles.lookup();
+            lookup.ensureInitialized(MiniMessage.class);
+            lookup.ensureInitialized(ChannelGetter.class);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

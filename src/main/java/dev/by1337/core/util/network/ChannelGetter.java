@@ -5,20 +5,11 @@ import org.bukkit.entity.Player;
 
 @FunctionalInterface
 public interface ChannelGetter {
+    ChannelGetter INSTANCE = ChannelGetterCreator.create();
+
     Channel getChannel(Player pl);
 
     static Channel get(Player pl) {
-        return Impl.getChannel(pl);
-    }
-
-    class Impl {
-        private static ChannelGetter channelGetter;
-
-        public static Channel getChannel(Player pl) {
-            if (channelGetter == null)
-                channelGetter = ChannelGetterCreator.create(pl);
-            return channelGetter.getChannel(pl);
-
-        }
+        return INSTANCE.getChannel(pl);
     }
 }
