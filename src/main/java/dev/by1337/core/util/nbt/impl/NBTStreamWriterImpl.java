@@ -199,7 +199,7 @@ public final class NBTStreamWriterImpl extends NBTStream implements NBTStreamWri
         }
         @Override
         public void close() {
-            throw new UnsupportedOperationException();
+            current = perv;
         }
     }
 
@@ -424,7 +424,7 @@ public final class NBTStreamWriterImpl extends NBTStream implements NBTStreamWri
 
         @Override
         public void close() {
-            throw new UnsupportedOperationException();
+            current = perv;
         }
     }
 
@@ -493,7 +493,7 @@ public final class NBTStreamWriterImpl extends NBTStream implements NBTStreamWri
     }
 
     public void close() {
-        popObject();
+        current.close();
         if (current != null) {
             throw new IllegalStateException("Не закрыто?");
         }

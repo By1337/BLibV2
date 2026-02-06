@@ -34,30 +34,90 @@ public interface NBTStreamWriter {
 
     void pushByte(byte v);
 
+    default void namedByte(String key, byte b) {
+        pushKey(key);
+        pushByte(b);
+    }
+
+    default void namedByte(String key, int b) {
+        pushKey(key);
+        pushByte(b);
+    }
+
     default void pushByte(int v) {
         pushByte((byte) v);
     }
 
     void pushShort(short v);
 
+    default void namedShort(String key, short b) {
+        pushKey(key);
+        pushShort(b);
+    }
+
     void pushInt(int v);
+
+    default void namedInt(String key, int b) {
+        pushKey(key);
+        pushInt(b);
+    }
 
     void pushLong(long v);
 
+    default void namedLong(String key, long b) {
+        pushKey(key);
+        pushLong(b);
+    }
+
     void pushFloat(float v);
+
+    default void namedFloat(String key, float b) {
+        pushKey(key);
+        pushFloat(b);
+    }
 
     void pushDouble(double v);
 
+    default void namedDouble(String key, double b) {
+        pushKey(key);
+        pushDouble(b);
+    }
+
     void pushByteArray(byte[] v);
+
+    default void namedByteArray(String key, byte[] b) {
+        pushKey(key);
+        pushByteArray(b);
+    }
 
     void pushIntArray(int[] v);
 
+    default void namedIntArray(String key, int[] b) {
+        pushKey(key);
+        pushIntArray(b);
+    }
+
     void pushLongArray(long[] v);
+
+    default void namedLongArray(String key, long[] b) {
+        pushKey(key);
+        pushLongArray(b);
+    }
 
     void pushString(String v);
 
+    default void namedString(String key, String b) {
+        pushKey(key);
+        pushString(b);
+    }
+
     default void pushBool(boolean v) {
         pushByte(v ? 1 : 0);
+    }
+
+    default void namedBool(String key, boolean b) {
+        pushKey(key);
+        pushBool(b);
     }
 
     void pushList(int type);
