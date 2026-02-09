@@ -48,6 +48,11 @@ public class ArgumentSound<C> extends Argument<C, Sound> {
         LOOKUP.getWordsWithPrefix(str, 15).forEach(suggestions::suggest);
     }
 
+    @Override
+    public boolean compilable() {
+        return true;
+    }
+
     static {
         Registry.SOUNDS.iterator().forEachRemaining(sound -> {
             var key = sound.getKey();
