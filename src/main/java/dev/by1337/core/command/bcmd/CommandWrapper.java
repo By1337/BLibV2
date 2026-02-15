@@ -64,7 +64,12 @@ public class CommandWrapper extends BukkitCommand implements Listener {
 
     @Override
     public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
-        return List.of("none");
+        try {
+            return command.suggest(sender, String.join(" ", args)).toList();
+        } catch (Exception e) {
+            plugin.getSLF4JLogger().error("Failed to tabComplete", e);
+        }
+        return List.of();
     }
 
     private static final Suggestions EMPTY_SUGGESTIONS = new Suggestions(new StringRange(0, 0), List.of());
