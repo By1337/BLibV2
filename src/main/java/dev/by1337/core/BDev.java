@@ -9,6 +9,10 @@ import dev.by1337.core.command.bcmd.TestCommand;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.legacy.BLibBridge;
 import dev.by1337.core.util.network.ChannelGetter;
+import dev.by1337.particle.*;
+import dev.by1337.particle.particle.ParticleData;
+import dev.by1337.particle.util.Version;
+import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +26,7 @@ public class BDev extends JavaPlugin {
     public static boolean IS_SNAPSHOT = true;
     public static Path HOME_DIR;
     private CommandWrapper commands;
+    private ParticleRenderBootstrapper particles;
 
     public BDev() {
         getDataFolder().mkdirs();
@@ -45,10 +50,15 @@ public class BDev extends JavaPlugin {
         commands.setPermission("bdev.use");
         commands.register();
         BLibBridge.onEnable();
+
+        particles = new ParticleRenderBootstrapper("bdev_particles", this);
+        particles.enable();
+        int ignored = ItemType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
     }
 
     @Override
     public void onDisable() {
+        particles.disable();
         commands.unregister();
         BLibBridge.onDisable();
     }
@@ -66,6 +76,22 @@ public class BDev extends JavaPlugin {
                             new NbtBridge.TestImpl().run(player, BCore.getNbtBridge());
                             player.sendMessage("done");
                             player.sendMessage(Objects.toString(ChannelGetter.get(player)));
+                        })
+                )
+                .sub(new Command<CommandSender>("particles")
+                        .requires(sender -> sender instanceof Player)
+                        .executor((sender, args) -> {
+                            Player player = (Player) sender;
+                            var loc = player.getLocation();
+                            ParticleRender.render(
+                                    player,
+                                    PluginParticleRender.circle(
+                                            256, 10, ParticleData.of(ParticleType.SOUL_FIRE_FLAME)
+                                    ),
+                                    loc.getX(),
+                                    loc.getY(),
+                                    loc.getZ()
+                            );
                         })
                 )
                 ;
