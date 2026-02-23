@@ -2,7 +2,6 @@ package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
 import dev.by1337.edsl.EventHandler;
-import dev.by1337.edsl.HandlerCodecBuilder;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.RecordYamlCodecBuilder;
@@ -44,10 +43,10 @@ public class OneOfHandler<C> implements EventHandler<C> {
         return list;
     }
 
-    public static <C> YamlCodec<OneOfHandler<C>> createCodec(HandlerCodecBuilder<C> b) {
-        return YamlCodec.lazyLoad(() -> RecordYamlCodecBuilder.mapOf(
+    public static <C> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
+        return RecordYamlCodecBuilder.mapOf(
                 OneOfHandler::new,
-                b.handlerCodec().listOf().fieldOf("oneOf", OneOfHandler::list)
-        ));
+                codec.listOf().fieldOf("oneOf", OneOfHandler::list)
+        );
     }
 }

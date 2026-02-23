@@ -2,11 +2,8 @@ package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
 import dev.by1337.edsl.EventHandler;
-import dev.by1337.edsl.HandlerCodecBuilder;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
-import dev.by1337.yaml.codec.RecordYamlCodecBuilder;
-import dev.by1337.yaml.codec.YamlCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,12 +39,5 @@ public class ListHandler<C> implements EventHandler<C> {
 
     public List<EventHandler<C>> list() {
         return list;
-    }
-
-    public static <C> YamlCodec<ListHandler<C>> createCodec(HandlerCodecBuilder<C> b, YamlCodec<EventHandler<C>> base) {
-        return YamlCodec.lazyLoad(() -> RecordYamlCodecBuilder.mapOf(
-                ListHandler::new,
-                base.listOf().fieldOf("oneOf", ListHandler::list)
-        ));
     }
 }

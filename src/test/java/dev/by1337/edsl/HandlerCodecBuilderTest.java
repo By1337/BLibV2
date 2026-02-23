@@ -288,8 +288,7 @@ class HandlerCodecBuilderTest {
             .create();
 
     private static <T> EventHandler<T> decodeTest(YamlValue v) {
-        DataResult<EventHandler<T>> res = new HandlerCodecBuilder<T>()
-                .handlerCodec().decode(v);
+        DataResult<EventHandler<T>> res = EventHandler.<T>codec().decode(v);
         if (res.hasError()) {
             System.out.println(res.error());
         }

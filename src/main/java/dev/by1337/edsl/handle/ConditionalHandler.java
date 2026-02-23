@@ -2,7 +2,6 @@ package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
 import dev.by1337.edsl.EventHandler;
-import dev.by1337.edsl.HandlerCodecBuilder;
 import dev.by1337.edsl.check.CheckHandler;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
@@ -31,7 +30,7 @@ public class ConditionalHandler<C> implements EventHandler<C> {
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
         if (tester.check.handle(ctx, placeholders, executor)) {
-            if (success !=null)
+            if (success != null)
                 success.handle(ctx, placeholders, executor);
             return true;
         }
@@ -57,32 +56,35 @@ public class ConditionalHandler<C> implements EventHandler<C> {
         if (v != null) c.accept(v);
     }
 
-    public static <T> YamlCodec<ConditionalHandler<T>> createCodec(HandlerCodecBuilder<T> b) {
-        return YamlCodec.lazyLoad(() -> RecordYamlCodecBuilder.mapOf(
+
+    public static <T> YamlCodec<ConditionalHandler<T>> codec(YamlCodec<EventHandler<T>> codec) {
+        return RecordYamlCodecBuilder.mapOf(
                 ConditionalHandler::new,
-                CheckHandlerUnion.createCodec(b).fieldOf(null, v -> v.tester),
-                b.handlerCodec().fieldOf("do", v -> v.success),
-                b.handlerCodec().fieldOf("else", v -> v.success)
-        ));
+                CheckHandlerUnion.<T>codec().fieldOf(null, v -> v.tester),
+                codec.fieldOf("do", v -> v.success),
+                codec.fieldOf("else", v -> v.success)
+        );
     }
 
     public record CheckHandlerUnion<T>(CheckHandler<T> check, boolean oneOf) {
-
-        private static <T> YamlCodec<CheckHandlerUnion<T>> createCodec(HandlerCodecBuilder<T> b) {
+        private static <T> YamlCodec<CheckHandlerUnion<T>> codec() {
             return new YamlCodec<>() {
+                private final YamlCodec<CheckHandler<T>> oneOfCodec = CheckHandler.codec(true);
+                private final YamlCodec<CheckHandler<T>> allOfCodec = CheckHandler.codec(false);
 
                 @Override
                 public DataResult<CheckHandlerUnion<T>> decode(YamlValue yaml) {
-                    if (!yaml.isMap()) return DataResult.success(new CheckHandlerUnion<>(CheckHandler.nopTrue(), false));
+                    if (!yaml.isMap())
+                        return DataResult.success(new CheckHandlerUnion<>(CheckHandler.nopTrue(), false));
                     return yaml.decode(YamlCodec.YAML_MAP).flatMap(map -> {
                         if (map.has("if-one")) {
-                            return b.checkCodecOneOf().decode(map.get("if-one"))
+                            return oneOfCodec.decode(map.get("if-one"))
                                     .mapValue(v -> new CheckHandlerUnion<>(v, true));
                         } else if (map.has("if-all")) {
-                            return b.checkCodec().decode(map.get("if-all"))
+                            return allOfCodec.decode(map.get("if-all"))
                                     .mapValue(v -> new CheckHandlerUnion<>(v, false));
                         } else if (map.has("if")) {
-                            return b.checkCodec().decode(map.get("if"))
+                            return allOfCodec.decode(map.get("if"))
                                     .mapValue(v -> new CheckHandlerUnion<>(v, false));
                         }
                         return DataResult.success(new CheckHandlerUnion<>(CheckHandler.nopTrue(), false));
