@@ -1,0 +1,52 @@
+test1: &test1
+  - 'message'
+  - |
+    line 1
+    line 2
+test2:
+  - if: '100 == {test}'
+    do: *test1
+
+
+on_click:
+  - 'msg' # можно указывать сразу команду
+  - if: '100 == 100' # условие
+    do: # если условие верно, то выполнятся эти команды (ранее commands)
+      - '100 == 100'
+    else: # если условие ложно, то выполнятся эти команды (ранее deny_commands)
+      - '100 != 100'
+  - if: '%vault_eco_balance% > 1000'
+    do:
+      console: 'eco take %player_name% 1000'
+  - if: '99 == 99'
+    do:
+      if: '88 == 88' # можно указывать if внутри других if
+      do: 'Вложенный if'
+on_left_click:
+  - oneOf: # oneOf команды, это команды которые останавливаются на первом успешном if
+      - if: '%vault_eco_balance% < 1000'
+        do: 'У Вас не достаточно монет!'
+      - if: '%player_name% == _By1337_'
+        do: 'Вы не _By1337_'
+      - do: # просто do без условия
+          - 'Вы _By1337_ с 1000 монет!'
+on_right_click:
+  - if-all: # можно объединить несколько условий
+      - '%vault_eco_balance% > 1000'
+      - '%player_name% == _By1337%'
+    do: 'Все условия верны'
+  - if-one:
+      - '%vault_eco_balance% > 1000'
+      - '100 < -1'
+    do: 'Как минимум одно условие верно!'
+
+
+
+
+test:
+  - oneOf:
+      - if: '1 == 2'
+        do: '[response] a'
+      - if: '2 == 2'
+        do: '[response] b'
+      - do: '[response] c'
