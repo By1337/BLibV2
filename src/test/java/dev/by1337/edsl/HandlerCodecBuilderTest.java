@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.by1337.cmd.Command;
 import dev.by1337.cmd.argument.ArgumentStrings;
+import dev.by1337.edsl.trace.EventTracer;
 import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.DataResult;
@@ -15,6 +16,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,13 +69,22 @@ class HandlerCodecBuilderTest {
 
 
     private static AtomicReference<List<String>> response = new AtomicReference<>(new ArrayList<>());
-    private static final Command<Void> command = new Command<Void>("root")
-            .sub(new Command<Void>("[response]")
+    private static final Command<EventContext> command = new Command<EventContext>("root")
+            .sub(new Command<EventContext>("[response]")
                     .argument(new ArgumentStrings<>("value"))
                     .executor((v, args) -> {
                         response.get().add((String) args.get("value"));
                     })
             );
+    private static EventContext getContext(){
+        return new EventContext() {
+            private EventTracer tracer = EventTracer.performanceTracer(System.out);
+            @Override
+            public EventTracer tracer() {
+                return tracer;
+            }
+        };
+    }
     @Test
     void run(){
         YamlMap map = YamlMap.load(new StringReader("""
@@ -81,9 +92,9 @@ class HandlerCodecBuilderTest {
                   if: '100 == 100'
                   do: '[response] 1'
                   else: '[response] 2'"""));
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
         assertEquals(List.of("1"), response.get());
     }
     @Test
@@ -94,9 +105,9 @@ class HandlerCodecBuilderTest {
                     do: '[response] 1'
                   - if: '99 == 99'
                     do: '[response] 2'"""));
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
         assertEquals(List.of("1", "2"), response.get());
     }
 
@@ -109,9 +120,9 @@ class HandlerCodecBuilderTest {
             else: '[response] fail'
     """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("fail"), response.get());
     }
@@ -126,9 +137,9 @@ class HandlerCodecBuilderTest {
               - '[response] b'
     """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("a", "b"), response.get());
     }
@@ -143,9 +154,9 @@ class HandlerCodecBuilderTest {
               do: '[response] nested'
     """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("nested"), response.get());
     }
@@ -159,9 +170,9 @@ class HandlerCodecBuilderTest {
                       if: '2 == 3'
                       do: '[response] nested'"""));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of(), response.get());
     }
@@ -173,9 +184,9 @@ class HandlerCodecBuilderTest {
           - do: '[response] always'
     """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("always"), response.get());
     }
@@ -191,9 +202,9 @@ class HandlerCodecBuilderTest {
                         do: '[response] b'
                       - do: '[response] c'"""));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("b"), response.get());
     }
@@ -209,9 +220,9 @@ class HandlerCodecBuilderTest {
                         do: '[response] b'
                       - do: '[response] fallback'"""));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("fallback"), response.get());
     }
@@ -226,9 +237,9 @@ class HandlerCodecBuilderTest {
                       - if: '1 == 1'
                         do: '[response] second'"""));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("first"), response.get());
     }
@@ -242,9 +253,9 @@ class HandlerCodecBuilderTest {
           - do: '[response] 3'
     """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("1", "2", "3"), response.get());
     }
@@ -256,9 +267,9 @@ class HandlerCodecBuilderTest {
                   - if: '1 == 2'
                     do: '[response] fail'"""));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of(), response.get());
     }
@@ -266,19 +277,40 @@ class HandlerCodecBuilderTest {
     @Test
     void elseList() {
         YamlMap map = YamlMap.load(new StringReader("""
-        test:
-          - if: '1 == 2'
-            do: '[response] ok'
-            else:
-              - '[response] a'
-              - '[response] b'
-    """));
+                    test:
+                      - if: '1 == 2'
+                        do: '[response] ok'
+                        else:
+                          - '[response] a'
+                          - '[response] b'
+                """));
 
-        EventHandler<Void> e = decodeTest(map.get("test"));
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(null, s -> s, command);
+        e.handle(getContext(), s -> s, command);
 
         assertEquals(List.of("a", "b"), response.get());
+    }
+
+
+    @Test
+    void printerTest() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - oneOf:
+                      - if: '1000 < 1000'
+                        do: 'У Вас не достаточно монет!'
+                      - if: '_By1337_ != _By1337_'
+                        do: 'Вы не _By1337_'
+                      - do: # просто do без условия
+                          - 'Вы _By1337_ с 1000 монет!'"""));
+
+        EventHandler<EventContext> e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(getContext(), s -> s, command);
+        e.handle(getContext(), s -> s, command);
+
+       // assertEquals(List.of("fallback"), response.get());
     }
 
 
@@ -287,7 +319,7 @@ class HandlerCodecBuilderTest {
             .setPrettyPrinting()
             .create();
 
-    private static <T> EventHandler<T> decodeTest(YamlValue v) {
+    private static <T extends EventContext> EventHandler<T> decodeTest(YamlValue v) {
         DataResult<EventHandler<T>> res = EventHandler.<T>codec().decode(v);
         if (res.hasError()) {
             System.out.println(res.error());

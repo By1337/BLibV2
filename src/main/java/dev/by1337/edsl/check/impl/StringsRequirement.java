@@ -1,6 +1,7 @@
 package dev.by1337.edsl.check.impl;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.check.CheckHandler;
 import dev.by1337.edsl.util.LazyLoad;
 import dev.by1337.plc.PlaceholderApplier;
@@ -12,19 +13,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
-public record StringsRequirement<C>(Operation op, String s, String s1) implements CheckHandler<C> {
+public record StringsRequirement<C extends EventContext>(Operation op, String s, String s1) implements CheckHandler<C> {
 
 
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
-        return op.test.test(placeholders.setPlaceholders(s), placeholders.setPlaceholders(s1));
+        var left = placeholders.setPlaceholders(s);
+        var right = placeholders.setPlaceholders(s1);
+        var v = op.test.test(left, right);
+        ctx.tracer().log("if '%s %s %s' -> %s", left, op.name, right, v);
+        return v;
     }
 
     public @Nullable CheckHandler<C> compile() {
         if (s.contains("{") || s.contains("%") ||
                 s1.contains("{") || s1.contains("%")
         ) return null;
-        return op.test.test(s, s1) ? CheckHandler.nopTrue() : CheckHandler.nopFalse();
+        return op.test.test(s, s1) ?
+                CheckHandler.nopTrue("%s %s %s", s, op.name, s1) :
+                CheckHandler.nopFalse("%s %s %s", s, op.name, s1);
     }
 
     public StringsRequirement<C> invert() {

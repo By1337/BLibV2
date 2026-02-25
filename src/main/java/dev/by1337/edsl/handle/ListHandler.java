@@ -1,6 +1,7 @@
 package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
@@ -9,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListHandler<C> implements EventHandler<C> {
+public class ListHandler<C extends EventContext> implements EventHandler<C> {
     private final List<EventHandler<C>> list;
 
     public ListHandler(List<EventHandler<C>> list) {
@@ -18,10 +19,23 @@ public class ListHandler<C> implements EventHandler<C> {
 
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
+        if (list.isEmpty()){
+            ctx.log("[] -> true");
+            return true;
+        }
         boolean state = true;
-        for (EventHandler<C> handler : list) {
-            if (!handler.handle(ctx, placeholders, executor)) {
-                state = false;
+        try (var enter = ctx.enter("list [", "] -> %s")){
+            enter.result(true);
+            var iterator = list.iterator();
+            while (iterator.hasNext()) {
+                EventHandler<C> handler = iterator.next();
+                if (!handler.handle(ctx, placeholders, executor)) {
+                    enter.result(false);
+                    state = false;
+                }
+                if (iterator.hasNext()){
+                    ctx.log("");
+                }
             }
         }
         return state;

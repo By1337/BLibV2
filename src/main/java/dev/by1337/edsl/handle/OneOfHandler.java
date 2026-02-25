@@ -1,6 +1,7 @@
 package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class OneOfHandler<C> implements EventHandler<C> {
+public class OneOfHandler<C extends EventContext> implements EventHandler<C> {
     private final List<EventHandler<C>> list;
 
     public OneOfHandler(List<EventHandler<C>> list) {
@@ -21,12 +22,22 @@ public class OneOfHandler<C> implements EventHandler<C> {
 
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
-        for (EventHandler<C> handler : list) {
-            if (handler.handle(ctx, placeholders, executor)) {
-                return true;
+        try (var enter = ctx.enter("oneOf [", "] -> %s")){
+            enter.result(false);
+            var iterator = list.iterator();
+            while (iterator.hasNext()){
+                EventHandler<C> handler = iterator.next();
+                if (handler.handle(ctx, placeholders, executor)) {
+                    enter.result(true);
+                    return true;
+                }
+                if (iterator.hasNext()){
+                    ctx.log("");
+                }
             }
+            enter.result(false);
+            return false;
         }
-        return false;
     }
 
     @Override
@@ -43,7 +54,7 @@ public class OneOfHandler<C> implements EventHandler<C> {
         return list;
     }
 
-    public static <C> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
+    public static <C extends EventContext> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
         return RecordYamlCodecBuilder.mapOf(
                 OneOfHandler::new,
                 codec.listOf().fieldOf("oneOf", OneOfHandler::list)

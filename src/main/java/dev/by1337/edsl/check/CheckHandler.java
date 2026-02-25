@@ -1,6 +1,7 @@
 package dev.by1337.edsl.check;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.check.impl.MathRequirement;
 import dev.by1337.edsl.check.impl.StringsRequirement;
@@ -17,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public interface CheckHandler<T> extends EventHandler<T> {
-    static <T> YamlCodec<CheckHandler<T>> codec(boolean oneOf) {
+public interface CheckHandler<T extends EventContext> extends EventHandler<T> {
+    static <T extends EventContext> YamlCodec<CheckHandler<T>> codec(boolean oneOf) {
         return new YamlCodec<>() {
             @Override
             public DataResult<CheckHandler<T>> decode(YamlValue yaml) {
@@ -26,17 +27,24 @@ public interface CheckHandler<T> extends EventHandler<T> {
                         .mapValue(list -> new CheckHandler<T>() {
                             @Override
                             public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
-                                boolean state = true;
-                                for (CheckHandler<T> handler : list) {
-                                    if (handler.handle(ctx, placeholders, executor)) {
-                                        if (oneOf) return true;
-                                    } else if (oneOf) {
-                                        state = false;
-                                    } else {
-                                        return false;
+                                try (var enter = ctx.enter("if-list oneOf: " + oneOf, "if-list -> %s")) {
+                                    boolean state = true;
+                                    for (CheckHandler<T> handler : list) {
+                                        if (handler.handle(ctx, placeholders, executor)) {
+                                            if (oneOf) {
+                                                enter.result(true);
+                                                return true;
+                                            }
+                                        } else if (oneOf) {
+                                            enter.result(false);
+                                            state = false;
+                                        } else {
+                                            enter.result(false);
+                                            return false;
+                                        }
                                     }
+                                    return state;
                                 }
-                                return state;
                             }
 
                             @Override
@@ -66,6 +74,7 @@ public interface CheckHandler<T> extends EventHandler<T> {
                     }
                 });
             }
+
             private <E extends CheckHandler<T>> CheckHandler<T> tryMutate(E in, Function<E, CheckHandler<T>> mapper) {
                 CheckHandler<T> out = mapper.apply(in);
                 return out != null ? out : in;
@@ -83,9 +92,10 @@ public interface CheckHandler<T> extends EventHandler<T> {
         };
     }
 
-    CheckHandler<Void> TRUE = new CheckHandler<Void>() {
+    CheckHandler<EventContext> TRUE = new CheckHandler<EventContext>() {
         @Override
-        public boolean handle(Void ctx, PlaceholderApplier placeholders, Command<Void> executor) {
+        public boolean handle(EventContext ctx, PlaceholderApplier placeholders, Command<EventContext> executor) {
+            ctx.log("if 'true' -> true");
             return true;
         }
 
@@ -94,9 +104,10 @@ public interface CheckHandler<T> extends EventHandler<T> {
             return YamlValue.wrap("true");
         }
     };
-    CheckHandler<Void> FALSE = new CheckHandler<Void>() {
+    CheckHandler<EventContext> FALSE = new CheckHandler<EventContext>() {
         @Override
-        public boolean handle(Void ctx, PlaceholderApplier placeholders, Command<Void> executor) {
+        public boolean handle(EventContext ctx, PlaceholderApplier placeholders, Command<EventContext> executor) {
+            ctx.log("if 'false' -> false");
             return false;
         }
 
@@ -106,13 +117,49 @@ public interface CheckHandler<T> extends EventHandler<T> {
         }
     };
 
-    static <T> CheckHandler<T> nopTrue() {
+    static <T extends EventContext> CheckHandler<T> nopTrue() {
         // noinspection unchecked
         return (CheckHandler<T>) TRUE;
     }
 
-    static <T> CheckHandler<T> nopFalse() {
+    static <T extends EventContext> CheckHandler<T> nopFalse() {
         // noinspection unchecked
         return (CheckHandler<T>) FALSE;
+    }
+
+    static <T extends EventContext> CheckHandler<T> nopTrue(String exp, Object... args) {
+        return nopTrue(String.format(exp, args));
+    }
+    static <T extends EventContext> CheckHandler<T> nopTrue(String exp) {
+        return new CheckHandler<T>() {
+            @Override
+            public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+                ctx.log("if '%s' -> true", exp);
+                return true;
+            }
+
+            @Override
+            public YamlValue encode() {
+                return YamlValue.wrap("true");
+            }
+        };
+    }
+
+    static <T extends EventContext> CheckHandler<T> nopFalse(String exp, Object... args) {
+        return nopFalse(String.format(exp, args));
+    }
+    static <T extends EventContext> CheckHandler<T> nopFalse(String exp) {
+        return new CheckHandler<T>() {
+            @Override
+            public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+                ctx.log("if '%s' -> false", exp);
+                return false;
+            }
+
+            @Override
+            public YamlValue encode() {
+                return YamlValue.wrap("false");
+            }
+        };
     }
 }

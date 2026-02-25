@@ -2,6 +2,7 @@ package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
 import dev.by1337.cmd.CompiledCommand;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
@@ -9,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CommandHandler<C> implements EventHandler<C> {
+public class CommandHandler<C extends EventContext> implements EventHandler<C> {
     private static final Logger log = LoggerFactory.getLogger(CommandHandler.class);
     private final String source;
     private @Nullable CompiledCommand<C> compiled;
@@ -26,6 +27,7 @@ public class CommandHandler<C> implements EventHandler<C> {
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
         if (compiled != null && executor == lastExecutor) {
+            ctx.log("run: %s", source);
             compiled.execute(ctx);
         } else {
             if (canBeCompiled) {
@@ -37,6 +39,7 @@ public class CommandHandler<C> implements EventHandler<C> {
                 }
                 return handle(ctx, placeholders, executor);
             } else {
+                ctx.log("run: %s", source);
                 try {
                     if (hasPlaceholders) {
                         executor.execute(ctx, placeholders.setPlaceholders(source));

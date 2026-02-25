@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public interface EventHandler<C> {
-    static <T> YamlCodec<EventHandler<T>> codec() {
+public interface EventHandler<C extends EventContext> {
+    static <T extends EventContext> YamlCodec<EventHandler<T>> codec() {
         return new YamlCodec<>() {
             private final YamlCodec<Map<String, YamlValue>> S2OBJET_MAP = YamlCodec.mapOf(YamlCodec.STRING, YamlCodec.YAML_VALUE);
             private final YamlCodec<OneOfHandler<T>> oneOf = OneOfHandler.codec(this);
@@ -101,10 +101,11 @@ public interface EventHandler<C> {
         return res != null ? res : YamlValue.wrap("unsupported " + this.getClass().getSimpleName());
     }
 
-    static <T> EventHandler<T> nop() {
+    static <T extends EventContext> EventHandler<T> nop() {
         return new EventHandler<T>() {
             @Override
             public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+                ctx.log("nop -> {}");
                 return true;
             }
 

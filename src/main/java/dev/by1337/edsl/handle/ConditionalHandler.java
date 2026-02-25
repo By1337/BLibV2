@@ -1,6 +1,7 @@
 package dev.by1337.edsl.handle;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.check.CheckHandler;
 import dev.by1337.plc.PlaceholderApplier;
@@ -16,12 +17,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ConditionalHandler<C> implements EventHandler<C> {
+public class ConditionalHandler<C extends EventContext> implements EventHandler<C> {
     private final CheckHandlerUnion<C> tester;
     private final EventHandler<C> success;
     private final EventHandler<C> failure;
 
-    public ConditionalHandler(CheckHandlerUnion<C> tester, EventHandler<C> success, EventHandler<C> failure) {
+    private ConditionalHandler(CheckHandlerUnion<C> tester, EventHandler<C> success, EventHandler<C> failure) {
         this.tester = tester;
         this.success = success;
         this.failure = failure;
@@ -29,14 +30,18 @@ public class ConditionalHandler<C> implements EventHandler<C> {
 
     @Override
     public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
-        if (tester.check.handle(ctx, placeholders, executor)) {
-            if (success != null)
-                success.handle(ctx, placeholders, executor);
-            return true;
+        try (var enter = ctx.enter("if-do {", "} -> %s")){
+            if (tester.check.handle(ctx, placeholders, executor)) {
+                if (success != null)
+                    success.handle(ctx, placeholders, executor);
+                enter.result(true);
+                return true;
+            }
+            if (failure != null)
+                failure.handle(ctx, placeholders, executor);
+            enter.result(false);
+            return false;
         }
-        if (failure != null)
-            failure.handle(ctx, placeholders, executor);
-        return false;
     }
 
     @Override
@@ -57,7 +62,7 @@ public class ConditionalHandler<C> implements EventHandler<C> {
     }
 
 
-    public static <T> YamlCodec<ConditionalHandler<T>> codec(YamlCodec<EventHandler<T>> codec) {
+    public static <T extends EventContext> YamlCodec<ConditionalHandler<T>> codec(YamlCodec<EventHandler<T>> codec) {
         return RecordYamlCodecBuilder.mapOf(
                 ConditionalHandler::new,
                 CheckHandlerUnion.<T>codec().fieldOf(null, v -> v.tester),
@@ -66,8 +71,9 @@ public class ConditionalHandler<C> implements EventHandler<C> {
         );
     }
 
-    public record CheckHandlerUnion<T>(CheckHandler<T> check, boolean oneOf) {
-        private static <T> YamlCodec<CheckHandlerUnion<T>> codec() {
+    //todo мне не нравится(
+    private record CheckHandlerUnion<T extends EventContext>(CheckHandler<T> check, boolean oneOf) {
+        private static <T extends EventContext> YamlCodec<CheckHandlerUnion<T>> codec() {
             return new YamlCodec<>() {
                 private final YamlCodec<CheckHandler<T>> oneOfCodec = CheckHandler.codec(true);
                 private final YamlCodec<CheckHandler<T>> allOfCodec = CheckHandler.codec(false);
