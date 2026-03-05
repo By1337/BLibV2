@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ConditionalHandler<C extends EventContext> implements EventHandler<C> {
+public class ConditionalHandler<C extends EventContext<C>> implements EventHandler<C> {
     private final CheckHandlerUnion<C> tester;
     private final EventHandler<C> success;
     private final EventHandler<C> failure;
@@ -29,16 +29,16 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
     }
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
+    public boolean handle(C ctx) {
         try (var enter = ctx.enter("if-do {", "} -> %s")){
-            if (tester.check.handle(ctx, placeholders, executor)) {
+            if (tester.check.handle(ctx)) {
                 if (success != null)
-                    success.handle(ctx, placeholders, executor);
+                    success.handle(ctx);
                 enter.result(true);
                 return true;
             }
             if (failure != null)
-                failure.handle(ctx, placeholders, executor);
+                failure.handle(ctx);
             enter.result(false);
             return false;
         }
@@ -62,7 +62,7 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
     }
 
 
-    public static <T extends EventContext> YamlCodec<ConditionalHandler<T>> codec(YamlCodec<EventHandler<T>> codec) {
+    public static <T extends EventContext<T>> YamlCodec<ConditionalHandler<T>> codec(YamlCodec<EventHandler<T>> codec) {
         return RecordYamlCodecBuilder.mapOf(
                 ConditionalHandler::new,
                 CheckHandlerUnion.<T>codec().fieldOf(null, v -> v.tester),
@@ -72,8 +72,8 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
     }
 
     //todo мне не нравится(
-    private record CheckHandlerUnion<T extends EventContext>(CheckHandler<T> check, boolean oneOf) {
-        private static <T extends EventContext> YamlCodec<CheckHandlerUnion<T>> codec() {
+    private record CheckHandlerUnion<T extends EventContext<T>>(CheckHandler<T> check, boolean oneOf) {
+        private static <T extends EventContext<T>> YamlCodec<CheckHandlerUnion<T>> codec() {
             return new YamlCodec<>() {
                 private final YamlCodec<CheckHandler<T>> oneOfCodec = CheckHandler.codec(true);
                 private final YamlCodec<CheckHandler<T>> allOfCodec = CheckHandler.codec(false);
@@ -81,7 +81,7 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
                 @Override
                 public DataResult<CheckHandlerUnion<T>> decode(YamlValue yaml) {
                     if (!yaml.isMap())
-                        return DataResult.success(new CheckHandlerUnion<>(CheckHandler.nopTrue(), false));
+                        return DataResult.success(new CheckHandlerUnion<T>(CheckHandler.nopTrue(), false));
                     return yaml.decode(YamlCodec.YAML_MAP).flatMap(map -> {
                         if (map.has("if-one")) {
                             return oneOfCodec.decode(map.get("if-one"))
@@ -93,7 +93,7 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
                             return allOfCodec.decode(map.get("if"))
                                     .mapValue(v -> new CheckHandlerUnion<>(v, false));
                         }
-                        return DataResult.success(new CheckHandlerUnion<>(CheckHandler.nopTrue(), false));
+                        return DataResult.success(new CheckHandlerUnion<T>(CheckHandler.nopTrue(), false));
                     });
                 }
 
@@ -101,12 +101,6 @@ public class ConditionalHandler<C extends EventContext> implements EventHandler<
                 public YamlValue encode(CheckHandlerUnion<T> handler) {
                     //unsupported по сути
                     return handler.check().encode();
-                }
-
-                @Override
-                public @NotNull SchemaType schema() {
-                    //unsupported
-                    return SchemaTypes.ANY;
                 }
             };
         }

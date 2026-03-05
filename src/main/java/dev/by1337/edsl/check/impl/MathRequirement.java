@@ -10,13 +10,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record MathRequirement<C extends EventContext>(String input) implements CheckHandler<C> {
+public record MathRequirement<C extends EventContext<C>>(String input) implements CheckHandler<C> {
 
     private static final Logger log = LoggerFactory.getLogger(MathRequirement.class);
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
-        String s = placeholders.setPlaceholders(input);
+    public boolean handle(C ctx) {
+        String s = ctx.setPlaceholders(input);
         try {
             var v = FastExpressionParser.parse(s) == 1D;
             ctx.tracer().log("if '%s' -> %s", s, v);

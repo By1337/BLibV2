@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CommandHandler<C extends EventContext> implements EventHandler<C> {
+public class CommandHandler<C extends EventContext<C>> implements EventHandler<C> {
     private static final Logger log = LoggerFactory.getLogger(CommandHandler.class);
     private final String source;
     private @Nullable CompiledCommand<C> compiled;
@@ -25,10 +25,12 @@ public class CommandHandler<C extends EventContext> implements EventHandler<C> {
     }
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
+    public boolean handle(C ctx) {
+        Command<C> executor = ctx.command();
         if (compiled != null && executor == lastExecutor) {
-            ctx.log("run: %s", source);
-            compiled.execute(ctx);
+            try (var ignored = ctx.tracer().timing("run: %s", source)){
+                compiled.execute(ctx);
+            }
         } else {
             if (canBeCompiled) {
                 canBeCompiled = false;
@@ -37,17 +39,16 @@ public class CommandHandler<C extends EventContext> implements EventHandler<C> {
                     lastExecutor = executor;
                 } catch (Exception ignored) {
                 }
-                return handle(ctx, placeholders, executor);
+                return handle(ctx);
             } else {
-                ctx.log("run: %s", source);
-                try {
+                try (var ignored = ctx.tracer().timing("run: %s", source)){
                     if (hasPlaceholders) {
-                        executor.execute(ctx, placeholders.setPlaceholders(source));
+                        executor.execute(ctx, ctx.setPlaceholders(source));
                     } else {
                         executor.execute(ctx, source);
                     }
                 } catch (Exception e) {
-                    log.error("Failed to run command {}. post-placeholders: {}", source, placeholders.setPlaceholders(source), e);
+                    log.error("Failed to run command {}. post-placeholders: {}", source, ctx.setPlaceholders(source), e);
                 }
             }
         }

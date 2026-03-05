@@ -18,19 +18,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public interface CheckHandler<T extends EventContext> extends EventHandler<T> {
-    static <T extends EventContext> YamlCodec<CheckHandler<T>> codec(boolean oneOf) {
+public interface CheckHandler<T extends EventContext<T>> extends EventHandler<T> {
+    static <T extends EventContext<T>> YamlCodec<CheckHandler<T>> codec(boolean oneOf) {
         return new YamlCodec<>() {
             @Override
             public DataResult<CheckHandler<T>> decode(YamlValue yaml) {
                 if (yaml.isList()) return yaml.asList(this)
                         .mapValue(list -> new CheckHandler<T>() {
                             @Override
-                            public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+                            public boolean handle(T ctx) {
                                 try (var enter = ctx.enter("if-list oneOf: " + oneOf, "if-list -> %s")) {
                                     boolean state = true;
                                     for (CheckHandler<T> handler : list) {
-                                        if (handler.handle(ctx, placeholders, executor)) {
+                                        if (handler.handle(ctx)) {
                                             if (oneOf) {
                                                 enter.result(true);
                                                 return true;
@@ -84,56 +84,47 @@ public interface CheckHandler<T extends EventContext> extends EventHandler<T> {
             public YamlValue encode(CheckHandler<T> c) {
                 return c.encode();
             }
+        };
+    }
+
+    static <T extends EventContext<T>> CheckHandler<T> nopTrue() {
+        return new CheckHandler<T>() {
 
             @Override
-            public @NotNull SchemaType schema() {
-                return SchemaTypes.ANY;
+            public boolean handle(T ctx) {
+                ctx.log("if 'true' -> true");
+                return true;
+            }
+
+            @Override
+            public YamlValue encode() {
+                return YamlValue.wrap("true");
             }
         };
     }
 
-    CheckHandler<EventContext> TRUE = new CheckHandler<EventContext>() {
-        @Override
-        public boolean handle(EventContext ctx, PlaceholderApplier placeholders, Command<EventContext> executor) {
-            ctx.log("if 'true' -> true");
-            return true;
-        }
-
-        @Override
-        public YamlValue encode() {
-            return YamlValue.wrap("true");
-        }
-    };
-    CheckHandler<EventContext> FALSE = new CheckHandler<EventContext>() {
-        @Override
-        public boolean handle(EventContext ctx, PlaceholderApplier placeholders, Command<EventContext> executor) {
-            ctx.log("if 'false' -> false");
-            return false;
-        }
-
-        @Override
-        public YamlValue encode() {
-            return YamlValue.wrap("false");
-        }
-    };
-
-    static <T extends EventContext> CheckHandler<T> nopTrue() {
-        // noinspection unchecked
-        return (CheckHandler<T>) TRUE;
-    }
-
-    static <T extends EventContext> CheckHandler<T> nopFalse() {
-        // noinspection unchecked
-        return (CheckHandler<T>) FALSE;
-    }
-
-    static <T extends EventContext> CheckHandler<T> nopTrue(String exp, Object... args) {
-        return nopTrue(String.format(exp, args));
-    }
-    static <T extends EventContext> CheckHandler<T> nopTrue(String exp) {
+    static <T extends EventContext<T>> CheckHandler<T> nopFalse() {
         return new CheckHandler<T>() {
             @Override
-            public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+            public boolean handle(T ctx) {
+                ctx.log("if 'false' -> false");
+                return true;
+            }
+
+            @Override
+            public YamlValue encode() {
+                return YamlValue.wrap("false");
+            }
+        };
+    }
+
+    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp, Object... args) {
+        return nopTrue(String.format(exp, args));
+    }
+    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp) {
+        return new CheckHandler<T>() {
+            @Override
+            public boolean handle(T ctx) {
                 ctx.log("if '%s' -> true", exp);
                 return true;
             }
@@ -145,13 +136,13 @@ public interface CheckHandler<T extends EventContext> extends EventHandler<T> {
         };
     }
 
-    static <T extends EventContext> CheckHandler<T> nopFalse(String exp, Object... args) {
+    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp, Object... args) {
         return nopFalse(String.format(exp, args));
     }
-    static <T extends EventContext> CheckHandler<T> nopFalse(String exp) {
+    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp) {
         return new CheckHandler<T>() {
             @Override
-            public boolean handle(T ctx, PlaceholderApplier placeholders, Command<T> executor) {
+            public boolean handle(T ctx) {
                 ctx.log("if '%s' -> false", exp);
                 return false;
             }

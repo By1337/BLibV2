@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListHandler<C extends EventContext> implements EventHandler<C> {
+public class ListHandler<C extends EventContext<C>> implements EventHandler<C> {
     private final List<EventHandler<C>> list;
 
     public ListHandler(List<EventHandler<C>> list) {
@@ -18,7 +18,7 @@ public class ListHandler<C extends EventContext> implements EventHandler<C> {
     }
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
+    public boolean handle(C ctx) {
         if (list.isEmpty()){
             ctx.log("[] -> true");
             return true;
@@ -29,7 +29,7 @@ public class ListHandler<C extends EventContext> implements EventHandler<C> {
             var iterator = list.iterator();
             while (iterator.hasNext()) {
                 EventHandler<C> handler = iterator.next();
-                if (!handler.handle(ctx, placeholders, executor)) {
+                if (!handler.handle(ctx)) {
                     enter.result(false);
                     state = false;
                 }

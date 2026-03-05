@@ -32,14 +32,19 @@ public interface EventTracer {
         public void log(String s) {
             //nop
         }
+
+        @Override
+        public TimingScope timing(String s, Object... args) {
+            return () -> {};
+        }
     };
 
     static EventTracer defaultTracer(StringBuilder sb) {
-        return defaultTracer(sb::append);
+        return defaultTracer(s -> sb.append(s).append("\n"));
     }
 
     static EventTracer defaultTracer(StringWriter sw) {
-        return defaultTracer(sw::append);
+        return defaultTracer(s -> sw.append(s).append("\n"));
     }
 
     static EventTracer defaultTracer(PrintStream stream) {
@@ -83,11 +88,11 @@ public interface EventTracer {
     }
 
     static EventTracer performanceTracer(StringBuilder sb) {
-        return performanceTracer(sb::append);
+        return performanceTracer(s -> sb.append(s).append("\n"));
     }
 
     static EventTracer performanceTracer(StringWriter sw) {
-        return performanceTracer(sw::append);
+        return performanceTracer(s -> sw.append(s).append("\n"));
     }
 
     static EventTracer performanceTracer(PrintStream stream) {
@@ -110,10 +115,11 @@ public interface EventTracer {
                     public void close() {
                         depth--;
                         long l = System.nanoTime() - nanos;
+                        String base = String.format(exit, result);
                         if (l < 1_000_000) {
-                            log(String.format(exit, result) + String.format(" ~%.2f us", (l / 1000D)));
+                            log("%s ~%.2f us", base, l / 1000D);
                         } else {
-                            log(String.format(exit, result) + String.format(" ~%.2f ms", (l / 1_000_000D)));
+                            log("%s ~%.2f ms", base, l / 1_000_000D);
                         }
                     }
 
@@ -143,10 +149,30 @@ public interface EventTracer {
 
     void log(String s);
 
-    interface TracerDepth extends AutoCloseable {
+    default TimingScope timing(String s, Object... args){
+        return new TimingScope() {
+            final long nanos = System.nanoTime();
+            @Override
+            public void close() {
+                long l = System.nanoTime() - nanos;
+                String base = String.format(s, args);
+                if (l < 1_000_000) {
+                    log("%s ~%.2f us", base, l / 1000D);
+                } else {
+                    log("%s ~%.2f ms", base, l / 1_000_000D);
+                }
+            }
+        };
+    }
+
+    interface TimingScope extends AutoCloseable{
         @Override
         void close();
+    }
+    interface TracerDepth extends AutoCloseable {
 
+        @Override
+        void close();
         void result(boolean b);
     }
 

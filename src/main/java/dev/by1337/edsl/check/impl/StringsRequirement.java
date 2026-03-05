@@ -13,13 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
-public record StringsRequirement<C extends EventContext>(Operation op, String s, String s1) implements CheckHandler<C> {
+public record StringsRequirement<C extends EventContext<C>>(Operation op, String s, String s1) implements CheckHandler<C> {
 
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
-        var left = placeholders.setPlaceholders(s);
-        var right = placeholders.setPlaceholders(s1);
+    public boolean handle(C ctx) {
+        var left = ctx.setPlaceholders(s);
+        var right = ctx.setPlaceholders(s1);
         var v = op.test.test(left, right);
         ctx.tracer().log("if '%s %s %s' -> %s", left, op.name, right, v);
         return v;

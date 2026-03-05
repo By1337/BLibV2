@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class OneOfHandler<C extends EventContext> implements EventHandler<C> {
+public class OneOfHandler<C extends EventContext<C>> implements EventHandler<C> {
     private final List<EventHandler<C>> list;
 
     public OneOfHandler(List<EventHandler<C>> list) {
@@ -21,13 +21,13 @@ public class OneOfHandler<C extends EventContext> implements EventHandler<C> {
     }
 
     @Override
-    public boolean handle(C ctx, PlaceholderApplier placeholders, Command<C> executor) {
+    public boolean handle(C ctx) {
         try (var enter = ctx.enter("oneOf [", "] -> %s")){
             enter.result(false);
             var iterator = list.iterator();
             while (iterator.hasNext()){
                 EventHandler<C> handler = iterator.next();
-                if (handler.handle(ctx, placeholders, executor)) {
+                if (handler.handle(ctx)) {
                     enter.result(true);
                     return true;
                 }
@@ -54,7 +54,7 @@ public class OneOfHandler<C extends EventContext> implements EventHandler<C> {
         return list;
     }
 
-    public static <C extends EventContext> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
+    public static <C extends EventContext<C>> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
         return RecordYamlCodecBuilder.mapOf(
                 OneOfHandler::new,
                 codec.listOf().fieldOf("oneOf", OneOfHandler::list)
