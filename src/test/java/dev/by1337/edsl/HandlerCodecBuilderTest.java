@@ -313,20 +313,19 @@ class HandlerCodecBuilderTest {
     void printerTest() {
         YamlMap map = YamlMap.load(new StringReader("""
                 test:
-                  - message_all: '123 666'
-                  - nearby-10:
-                      - if: '%player_name% != {target:player_name}'
-                        do:
-                          - console: say give bad effect {target:player_name}
-                      - bc: '%player_name% -> {target:player_name}'
+                  - weights:
+                      10:
+                        - test: 123
+                      20:
+                        - test2: 321 
                   - test:
                       value1: '123'
                       value2: '321'"""));
 
         EventHandler<TestContext> e = decodeTest(map.get("test"));
         response.get().clear();
-       // e.handle(new TestContext());
-       // e.handle(new TestContext());
+        e.handleAndClose(new TestContext());
+        e.handleAndClose(new TestContext());
 
        // assertEquals(List.of("fallback"), response.get());
     }

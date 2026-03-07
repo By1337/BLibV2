@@ -16,17 +16,13 @@ public class EventHandlerCodec<C extends EventContext<C>> implements YamlCodec<E
     private final YamlCodec<Map<String, YamlValue>> S2OBJET_MAP = YamlCodec.mapOf(YamlCodec.STRING, YamlCodec.YAML_VALUE);
     private final YamlCodec<AllPlayersHandler<C>> allPlayersCodec = AllPlayersHandler.codec(this);
     private final YamlCodec<NearbyHandler<C>> nearbyCodec = NearbyHandler.codec(this);
+    private final YamlCodec<WeightsHandler<C>> weightsCodec = WeightsHandler.codec(this);
 
     private final List<HandlerCodecHolder<C>> codecHolders = new ArrayList<>();
 
     public EventHandlerCodec() {
         registerHandler(OneOfHandler::codec, "oneOf");
-        registerHandler(new CodecFactory<C>() {
-            @Override
-            public YamlCodec<? extends EventHandler<C>> create(YamlCodec<EventHandler<C>> base) {
-                return dev.by1337.edsl.handle.ConditionalHandler.codec(base);
-            }
-        }, "if", "if-all", "if-one", "do", "else");
+        registerHandler(ConditionalHandler::codec, "if", "if-all", "if-one", "do", "else");
     }
 
     @Override
@@ -75,6 +71,8 @@ public class EventHandlerCodec<C extends EventContext<C>> implements YamlCodec<E
             return nearbyCodec.decode(value)
                     .and(DOUBLE.decode(cmd.substring("nearby-".length())))
                     .map(NearbyHandler::setRadius);
+        } else if (cmd.equals("weights")) {
+            return weightsCodec.decode(value);
         }
         return MULTI_LINE_STRING.decode(value).mapValue(s -> {
             if (s.isBlank()) return "[" + cmd + "]";
@@ -85,9 +83,9 @@ public class EventHandlerCodec<C extends EventContext<C>> implements YamlCodec<E
     public DataResult<? extends EventHandler<C>> decodePrimitiveCommand(String input) {
         if (!input.startsWith("[")) return decodePrimitiveCommand("[message] " + input.replace("\n", "<br><reset>"));
         //if (input.startsWith("[message_all]")){
-            //    String source = input.substring("[message_all]".length());
-            //    return decodeCommand("all_players", YamlValue.wrap("[message] " + source));
-            //}
+        //    String source = input.substring("[message_all]".length());
+        //    return decodeCommand("all_players", YamlValue.wrap("[message] " + source));
+        //}
         return DataResult.success(new CommandHandler<>(input));
     }
 

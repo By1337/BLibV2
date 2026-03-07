@@ -14,6 +14,12 @@ public interface EventHandler<C extends EventContext<C>> {
 
     boolean handle(C ctx);
 
+    default boolean handleAndClose(C ctx){
+        try (ctx){
+           return handle(ctx);
+        }
+    }
+
     @Nullable YamlValue encode();
 
     default @NotNull YamlValue doEncode() {
