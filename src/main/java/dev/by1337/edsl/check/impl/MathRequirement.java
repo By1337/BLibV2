@@ -1,10 +1,8 @@
 package dev.by1337.edsl.check.impl;
 
-import dev.by1337.cmd.Command;
 import dev.by1337.core.util.math.FastExpressionParser;
-import dev.by1337.edsl.EventContext;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.check.CheckHandler;
-import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

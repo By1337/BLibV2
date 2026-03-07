@@ -1,17 +1,12 @@
 package dev.by1337.edsl.check;
 
-import dev.by1337.cmd.Command;
-import dev.by1337.edsl.EventContext;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.check.impl.MathRequirement;
 import dev.by1337.edsl.check.impl.StringsRequirement;
-import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.DataResult;
 import dev.by1337.yaml.codec.YamlCodec;
-import dev.by1337.yaml.codec.schema.SchemaType;
-import dev.by1337.yaml.codec.schema.SchemaTypes;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

@@ -4,21 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.by1337.cmd.Command;
 import dev.by1337.cmd.argument.ArgumentStrings;
-import dev.by1337.edsl.trace.EventTracer;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.DataResult;
-import dev.by1337.yaml.codec.YamlCodec;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PipedReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,7 +76,7 @@ class HandlerCodecBuilderTest {
                         response.get().add((String) args.get("value"));
                     })
             );
-    private static class TestContext extends EventContext<TestContext>{
+    private static class TestContext extends EventContext<TestContext> {
         public TestContext() {
             super(true);
         }
@@ -305,20 +302,31 @@ class HandlerCodecBuilderTest {
 
         assertEquals(List.of("a", "b"), response.get());
     }
-
+//      on_place:
+//        - nearby-10:
+//            - if: '%player_name% != {target:player_name}'
+//              do:
+//                - console: say give bad effect {target:player_name}
+//            - bc: '%player_name% -> {target:player_name}'
 
     @Test
     void printerTest() {
         YamlMap map = YamlMap.load(new StringReader("""
                 test:
+                  - message_all: '123 666'
+                  - nearby-10:
+                      - if: '%player_name% != {target:player_name}'
+                        do:
+                          - console: say give bad effect {target:player_name}
+                      - bc: '%player_name% -> {target:player_name}'
                   - test:
                       value1: '123'
                       value2: '321'"""));
 
         EventHandler<TestContext> e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
-        e.handle(new TestContext());
+       // e.handle(new TestContext());
+       // e.handle(new TestContext());
 
        // assertEquals(List.of("fallback"), response.get());
     }

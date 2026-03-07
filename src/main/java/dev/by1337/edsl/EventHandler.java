@@ -1,6 +1,7 @@
 package dev.by1337.edsl;
 
 import dev.by1337.edsl.codec.EventHandlerCodec;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.YamlCodec;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface EventHandler<C extends EventContext<C>> {
     static <T extends EventContext<T>> YamlCodec<EventHandler<T>> codec() {
-        return new EventHandlerCodec<T>().make();
+        return new EventHandlerCodec<>();
     }
 
     boolean handle(C ctx);

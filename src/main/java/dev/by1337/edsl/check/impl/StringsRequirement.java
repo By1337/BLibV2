@@ -1,10 +1,8 @@
 package dev.by1337.edsl.check.impl;
 
-import dev.by1337.cmd.Command;
-import dev.by1337.edsl.EventContext;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.check.CheckHandler;
 import dev.by1337.edsl.util.LazyLoad;
-import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
