@@ -12,7 +12,6 @@ import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.particle.*;
 import dev.by1337.particle.particle.ParticleData;
 import dev.by1337.particle.util.Version;
-import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;

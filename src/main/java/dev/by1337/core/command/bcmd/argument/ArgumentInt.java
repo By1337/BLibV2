@@ -21,6 +21,7 @@ public class ArgumentInt<C> extends Argument<C, Integer> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
+        if (str.isEmpty()) return;
         try {
             out.put(name, (int) FastExpressionParser.parse(str));
         } catch (FastExpressionParser.MathFormatException e) {

@@ -24,6 +24,7 @@ public class ArgumentDouble<C> extends Argument<C, Double> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
+        if (str.isEmpty()) return;
         try {
             out.put(name, FastExpressionParser.parse(str));
         } catch (FastExpressionParser.MathFormatException e) {

@@ -53,7 +53,7 @@ public class ClasspathUtil {
         }
     }
 
-    private static File fixJar(File file, Plugin plugin, boolean refix) throws Exception {
+    public static File fixJar(File file, Plugin plugin, boolean refix) throws Exception {
         if (!file.getName().endsWith(".jar")) return file;
 
         File out = new File(

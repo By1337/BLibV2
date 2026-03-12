@@ -13,6 +13,7 @@ public class ArgumentComponent<C> extends Argument<C, Component> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String src = reader.readString();
+        if (src.isEmpty()) return;
         out.put(name, MiniMessage.deserialize(src));
         reader.ridx(reader.length());
     }

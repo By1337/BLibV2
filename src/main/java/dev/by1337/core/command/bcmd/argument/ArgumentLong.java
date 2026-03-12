@@ -14,6 +14,7 @@ public class ArgumentLong<C> extends Argument<C, Long> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
+        if (str.isEmpty()) return;
         try {
             out.put(name, (long) FastExpressionParser.parse(str));
         } catch (FastExpressionParser.MathFormatException e) {

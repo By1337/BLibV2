@@ -23,6 +23,7 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
+        if (str.isEmpty()) return;
         if ((str.equals("-all") || str.equals("*")) && !single) {
             out.put(name, Bukkit.getOnlinePlayers());
             return;
