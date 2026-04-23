@@ -6,6 +6,9 @@ import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.command.bcmd.CommandWrapper;
 import dev.by1337.core.command.bcmd.TestCommand;
+import dev.by1337.core.command.bcmd.argument.ArgumentInt;
+import dev.by1337.core.command.bcmd.argument.ArgumentPlayers;
+import dev.by1337.core.command.bcmd.argument.GlobalRegistryItem;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.legacy.BLibBridge;
 import dev.by1337.core.util.network.ChannelGetter;
@@ -18,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 
 @ApiStatus.Internal
@@ -68,7 +72,7 @@ public class BDev extends JavaPlugin {
                 .sub(TestCommand.createTest("commands"))
                 .sub(new Command<CommandSender>("test")
                         .requires(sender -> sender instanceof Player)
-                        .executor((sender, args) -> {
+                        .executor((sender) -> {
                             Player player = (Player) sender;
                             new ItemStackSerializer.TestImpl().run(player, BCore.getItemStackSerializer());
                             new BlockEntityUtil.TestImpl().run(player, BCore.getBlockEntityUtil());
@@ -79,7 +83,7 @@ public class BDev extends JavaPlugin {
                 )
                 .sub(new Command<CommandSender>("particles")
                         .requires(sender -> sender instanceof Player)
-                        .executor((sender, args) -> {
+                        .executor((sender) -> {
                             Player player = (Player) sender;
                             var loc = player.getLocation();
                             ParticleRender.render(
@@ -93,6 +97,29 @@ public class BDev extends JavaPlugin {
                             );
                         })
                 )
+                .sub(new Command<CommandSender>("item").executor(
+                        new GlobalRegistryItem<>("item"),
+                        new ArgumentPlayers<>("players"),
+                        new ArgumentInt<>("count"),
+                        (s, item, players, count) -> {
+                            if (item == null) {
+                                s.sendMessage("unknown item!");
+                                return;
+                            }
+                            if (players == null || players.isEmpty()) {
+                                if (s instanceof Player pl) {
+                                    players = List.of(pl);
+                                } else {
+                                    s.sendMessage("players not found!");
+                                    return;
+                                }
+                            }
+                            int x = count == null ? 1 : Math.max(1, Math.min(count, 64));
+                            for (Player player : players) {
+                                player.getInventory().addItem(item.asQuantity(x)).forEach((slot, i) -> player.getWorld().dropItemNaturally(player.getLocation(), i));
+                            }
+                            s.sendMessage("done");
+                        }))
                 ;
     }
 }
