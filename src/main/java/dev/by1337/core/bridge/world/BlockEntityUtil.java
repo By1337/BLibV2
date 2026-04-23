@@ -12,6 +12,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public interface BlockEntityUtil {
 
@@ -90,6 +91,7 @@ public interface BlockEntityUtil {
      */
     void tryClear(Location location);
 
+    void forEachContentAndClear(Location location, Consumer<ItemStack> consumer);
 
     record BlockInfo(BlockData data, int blockId, byte @Nullable [] blockEntity) {
     }
