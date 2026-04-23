@@ -49,17 +49,17 @@ public class BLibBridge {
     private static void loadBridge(Plugin plugin) {
         File outFolder = new File(plugin.getDataFolder(), ".bridges");
         outFolder.mkdirs();
-        File file = new File(outFolder, "BLib-bridge.jar");
+        File file = new File(outFolder, "BLib-bridge-1.9.6.jar");
         if (!file.exists() || BDev.IS_SNAPSHOT) {
-            try (var in = getInputStream("bridges/BLib-bridge.jar")) {
+            try (var in = getInputStream("bridges/BLib-bridge-1.9.6.jar")) {
                 if (in == null) {
-                    throw new FileNotFoundException("Unable to find bridges/BLib-bridge.jar");
+                    throw new FileNotFoundException("Unable to find bridges/BLib-bridge-1.9.6.jar");
                 }
                 try (var out = new FileOutputStream(file)) {
                     in.transferTo(out);
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load bridge BLib-bridge.jar", e);
+                throw new RuntimeException("Failed to load bridge BLib-bridge-1.9.6.jar", e);
             }
         }
         ClasspathUtil.addUrl(plugin, file.toPath(), BDev.IS_SNAPSHOT);
