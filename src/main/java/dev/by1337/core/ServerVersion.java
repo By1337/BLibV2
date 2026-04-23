@@ -45,11 +45,14 @@ public final class ServerVersion {
     public static final int V1_21_9 = toInt("1.21.9");
     public static final int V1_21_10 = toInt("1.21.10");
     public static final int V1_21_11 = toInt("1.21.11");
+    public static final int V26_1 = toInt("26.1");
+    public static final int V26_1_1 = toInt("26.1.1");
+    public static final int V26_1_2 = toInt("26.1.2");
 
     public static class LastKnown {
-        public static final String ID = "1.21.11";
-        public static final int VERSION = V1_21_11;
-        public static final int PROTOCOL = Protocol.V1_21_11;
+        public static final String ID = "26.1.2";
+        public static final int VERSION = V26_1_2;
+        public static final int PROTOCOL = Protocol.V26_1_2;
     }
 
     public static class Protocol {
@@ -105,6 +108,10 @@ public final class ServerVersion {
         public static final int V1_21_10 = V773;
         public static final int V774 = 774;
         public static final int V1_21_11 = V774;
+        public static final int V775 = 775;
+        public static final int V26_1 = V775;
+        public static final int V26_1_1 = V775;
+        public static final int V26_1_2 = V775;
     }
 
     private static int toInt(String id) {
@@ -137,361 +144,298 @@ public final class ServerVersion {
     public static boolean is1_16_5() {
         return CURRENT == V1_16_5;
     }
-
     public static boolean is1_16_5orNewer() {
         return CURRENT >= V1_16_5;
     }
-
     public static boolean is1_16_5orOlder() {
         return CURRENT <= V1_16_5;
     }
-
     public static boolean is1_17() {
         return CURRENT == V1_17;
     }
-
     public static boolean is1_17orNewer() {
         return CURRENT >= V1_17;
     }
-
     public static boolean is1_17orOlder() {
         return CURRENT <= V1_17;
     }
-
     public static boolean is1_17_1() {
         return CURRENT == V1_17_1;
     }
-
     public static boolean is1_17_1orNewer() {
         return CURRENT >= V1_17_1;
     }
-
     public static boolean is1_17_1orOlder() {
         return CURRENT <= V1_17_1;
     }
-
     public static boolean is1_18() {
         return CURRENT == V1_18;
     }
-
     public static boolean is1_18orNewer() {
         return CURRENT >= V1_18;
     }
-
     public static boolean is1_18orOlder() {
         return CURRENT <= V1_18;
     }
-
     public static boolean is1_18_1() {
         return CURRENT == V1_18_1;
     }
-
     public static boolean is1_18_1orNewer() {
         return CURRENT >= V1_18_1;
     }
-
     public static boolean is1_18_1orOlder() {
         return CURRENT <= V1_18_1;
     }
-
     public static boolean is1_18_2() {
         return CURRENT == V1_18_2;
     }
-
     public static boolean is1_18_2orNewer() {
         return CURRENT >= V1_18_2;
     }
-
     public static boolean is1_18_2orOlder() {
         return CURRENT <= V1_18_2;
     }
-
     public static boolean is1_19() {
         return CURRENT == V1_19;
     }
-
     public static boolean is1_19orNewer() {
         return CURRENT >= V1_19;
     }
-
     public static boolean is1_19orOlder() {
         return CURRENT <= V1_19;
     }
-
     public static boolean is1_19_1() {
         return CURRENT == V1_19_1;
     }
-
     public static boolean is1_19_1orNewer() {
         return CURRENT >= V1_19_1;
     }
-
     public static boolean is1_19_1orOlder() {
         return CURRENT <= V1_19_1;
     }
-
     public static boolean is1_19_2() {
         return CURRENT == V1_19_2;
     }
-
     public static boolean is1_19_2orNewer() {
         return CURRENT >= V1_19_2;
     }
-
     public static boolean is1_19_2orOlder() {
         return CURRENT <= V1_19_2;
     }
-
     public static boolean is1_19_3() {
         return CURRENT == V1_19_3;
     }
-
     public static boolean is1_19_3orNewer() {
         return CURRENT >= V1_19_3;
     }
-
     public static boolean is1_19_3orOlder() {
         return CURRENT <= V1_19_3;
     }
-
     public static boolean is1_19_4() {
         return CURRENT == V1_19_4;
     }
-
     public static boolean is1_19_4orNewer() {
         return CURRENT >= V1_19_4;
     }
-
     public static boolean is1_19_4orOlder() {
         return CURRENT <= V1_19_4;
     }
-
     public static boolean is1_20() {
         return CURRENT == V1_20;
     }
-
     public static boolean is1_20orNewer() {
         return CURRENT >= V1_20;
     }
-
     public static boolean is1_20orOlder() {
         return CURRENT <= V1_20;
     }
-
     public static boolean is1_20_1() {
         return CURRENT == V1_20_1;
     }
-
     public static boolean is1_20_1orNewer() {
         return CURRENT >= V1_20_1;
     }
-
     public static boolean is1_20_1orOlder() {
         return CURRENT <= V1_20_1;
     }
-
     public static boolean is1_20_2() {
         return CURRENT == V1_20_2;
     }
-
     public static boolean is1_20_2orNewer() {
         return CURRENT >= V1_20_2;
     }
-
     public static boolean is1_20_2orOlder() {
         return CURRENT <= V1_20_2;
     }
-
     public static boolean is1_20_3() {
         return CURRENT == V1_20_3;
     }
-
     public static boolean is1_20_3orNewer() {
         return CURRENT >= V1_20_3;
     }
-
     public static boolean is1_20_3orOlder() {
         return CURRENT <= V1_20_3;
     }
-
     public static boolean is1_20_4() {
         return CURRENT == V1_20_4;
     }
-
     public static boolean is1_20_4orNewer() {
         return CURRENT >= V1_20_4;
     }
-
     public static boolean is1_20_4orOlder() {
         return CURRENT <= V1_20_4;
     }
-
     public static boolean is1_20_5() {
         return CURRENT == V1_20_5;
     }
-
     public static boolean is1_20_5orNewer() {
         return CURRENT >= V1_20_5;
     }
-
     public static boolean is1_20_5orOlder() {
         return CURRENT <= V1_20_5;
     }
-
     public static boolean is1_20_6() {
         return CURRENT == V1_20_6;
     }
-
     public static boolean is1_20_6orNewer() {
         return CURRENT >= V1_20_6;
     }
-
     public static boolean is1_20_6orOlder() {
         return CURRENT <= V1_20_6;
     }
-
     public static boolean is1_21() {
         return CURRENT == V1_21;
     }
-
     public static boolean is1_21orNewer() {
         return CURRENT >= V1_21;
     }
-
     public static boolean is1_21orOlder() {
         return CURRENT <= V1_21;
     }
-
     public static boolean is1_21_1() {
         return CURRENT == V1_21_1;
     }
-
     public static boolean is1_21_1orNewer() {
         return CURRENT >= V1_21_1;
     }
-
     public static boolean is1_21_1orOlder() {
         return CURRENT <= V1_21_1;
     }
-
     public static boolean is1_21_2() {
         return CURRENT == V1_21_2;
     }
-
     public static boolean is1_21_2orNewer() {
         return CURRENT >= V1_21_2;
     }
-
     public static boolean is1_21_2orOlder() {
         return CURRENT <= V1_21_2;
     }
-
     public static boolean is1_21_3() {
         return CURRENT == V1_21_3;
     }
-
     public static boolean is1_21_3orNewer() {
         return CURRENT >= V1_21_3;
     }
-
     public static boolean is1_21_3orOlder() {
         return CURRENT <= V1_21_3;
     }
-
     public static boolean is1_21_4() {
         return CURRENT == V1_21_4;
     }
-
     public static boolean is1_21_4orNewer() {
         return CURRENT >= V1_21_4;
     }
-
     public static boolean is1_21_4orOlder() {
         return CURRENT <= V1_21_4;
     }
-
     public static boolean is1_21_5() {
         return CURRENT == V1_21_5;
     }
-
     public static boolean is1_21_5orNewer() {
         return CURRENT >= V1_21_5;
     }
-
     public static boolean is1_21_5orOlder() {
         return CURRENT <= V1_21_5;
     }
-
     public static boolean is1_21_6() {
         return CURRENT == V1_21_6;
     }
-
     public static boolean is1_21_6orNewer() {
         return CURRENT >= V1_21_6;
     }
-
     public static boolean is1_21_6orOlder() {
         return CURRENT <= V1_21_6;
     }
-
     public static boolean is1_21_7() {
         return CURRENT == V1_21_7;
     }
-
     public static boolean is1_21_7orNewer() {
         return CURRENT >= V1_21_7;
     }
-
     public static boolean is1_21_7orOlder() {
         return CURRENT <= V1_21_7;
     }
-
     public static boolean is1_21_8() {
         return CURRENT == V1_21_8;
     }
-
     public static boolean is1_21_8orNewer() {
         return CURRENT >= V1_21_8;
     }
-
     public static boolean is1_21_8orOlder() {
         return CURRENT <= V1_21_8;
     }
-
     public static boolean is1_21_9() {
         return CURRENT == V1_21_9;
     }
-
     public static boolean is1_21_9orNewer() {
         return CURRENT >= V1_21_9;
     }
-
     public static boolean is1_21_9orOlder() {
         return CURRENT <= V1_21_9;
     }
-
     public static boolean is1_21_10() {
         return CURRENT == V1_21_10;
     }
-
     public static boolean is1_21_10orNewer() {
         return CURRENT >= V1_21_10;
     }
-
     public static boolean is1_21_10orOlder() {
         return CURRENT <= V1_21_10;
     }
-
     public static boolean is1_21_11() {
         return CURRENT == V1_21_11;
     }
-
     public static boolean is1_21_11orNewer() {
         return CURRENT >= V1_21_11;
     }
-
     public static boolean is1_21_11orOlder() {
         return CURRENT <= V1_21_11;
     }
-
+    public static boolean is26_1() {
+        return CURRENT == V26_1;
+    }
+    public static boolean is26_1orNewer() {
+        return CURRENT >= V26_1;
+    }
+    public static boolean is26_1orOlder() {
+        return CURRENT <= V26_1;
+    }
+    public static boolean is26_1_1() {
+        return CURRENT == V26_1_1;
+    }
+    public static boolean is26_1_1orNewer() {
+        return CURRENT >= V26_1_1;
+    }
+    public static boolean is26_1_1orOlder() {
+        return CURRENT <= V26_1_1;
+    }
+    public static boolean is26_1_2() {
+        return CURRENT == V26_1_2;
+    }
+    public static boolean is26_1_2orNewer() {
+        return CURRENT >= V26_1_2;
+    }
+    public static boolean is26_1_2orOlder() {
+        return CURRENT <= V26_1_2;
+    }
 }
