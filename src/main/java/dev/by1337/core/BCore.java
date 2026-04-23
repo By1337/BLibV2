@@ -5,6 +5,7 @@ import dev.by1337.core.bridge.inventory.InventoryUtil;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
 import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
+import dev.by1337.core.entity.EntityWrapper;
 
 public class BCore {
     static BlockEntityUtil blockEntityUtil;
@@ -12,6 +13,7 @@ public class BCore {
     static InventoryUtil inventoryUtil;
     static BukkitCommandRegister bukkitCommandRegister;
     static NbtBridge nbtBridge;
+    static EntityWrapper.Maker entityWrapperMaker;
 
     public static BlockEntityUtil getBlockEntityUtil() {
         return blockEntityUtil;
@@ -31,5 +33,9 @@ public class BCore {
 
     public static NbtBridge getNbtBridge() {
         return nbtBridge;
+    }
+
+    public static EntityWrapper.Maker getEntityWrapperMaker() {
+        return entityWrapperMaker;
     }
 }
