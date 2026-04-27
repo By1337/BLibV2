@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.core</groupId>
     <artifactId>BLibV2</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 
     <properties>
         <java.version>16</java.version>
@@ -295,7 +295,7 @@
         <dependency>
             <groupId>dev.by1337.particle</groupId>
             <artifactId>render-bukkit</artifactId>
-            <version>1.6</version>
+            <version>1.6.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

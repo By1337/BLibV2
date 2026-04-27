@@ -15,6 +15,8 @@ import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.particle.*;
 import dev.by1337.particle.particle.ParticleData;
 import dev.by1337.particle.util.Version;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelOutboundHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @ApiStatus.Internal
@@ -95,6 +98,22 @@ public class BDev extends JavaPlugin {
                                     loc.getY(),
                                     loc.getZ()
                             );
+                        })
+                )
+                .sub(new Command<CommandSender>("handlers")
+                        .requires(sender -> sender instanceof Player)
+                        .executor((sender) -> {
+                            Player player = (Player) sender;
+                            var channel = ChannelGetter.get(player);
+                            StringBuilder out = new StringBuilder();
+                            out.append("out\n");
+                            for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
+                                if (entry.getValue() instanceof ChannelOutboundHandler){
+                                    out.append(entry.getKey()).append(" ").append(entry.getValue().getClass().getSimpleName()).append("\n");
+                                }
+                            }
+                            sender.sendMessage(out.toString());
+                            System.out.println(out);
                         })
                 )
                 .sub(new Command<CommandSender>("item").executor(
