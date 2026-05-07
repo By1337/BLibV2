@@ -57,7 +57,7 @@ public class BDev extends JavaPlugin {
         commands.register();
         BLibBridge.onEnable();
 
-        particles = new ParticleRenderBootstrapper("bdev_particles", this);
+        particles = new ParticleRenderBootstrapper("bdev-particles", this);
         particles.enable();
         int ignored = ItemType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
     }

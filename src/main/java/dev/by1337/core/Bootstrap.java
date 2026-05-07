@@ -39,7 +39,6 @@ class Bootstrap {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        //  ClasspathUtil.addUrl(plugin, RepositoryUtil.download(RepositoryUtil.BDEV_REPO,"dev.by1337.yaml:byaml-bukkit:1.1", libraries));
         loadNMSBridge(plugin);
         try {
             Class<?> boot = Class.forName("dev.by1337.core.BridgeBootstrapper");
