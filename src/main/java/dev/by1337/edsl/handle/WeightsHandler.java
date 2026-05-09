@@ -5,6 +5,7 @@ import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.YamlCodec;
+import dev.by1337.yaml.decoder.YamlDecoder;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
@@ -51,15 +52,10 @@ public class WeightsHandler<C extends EventContext<C>> implements EventHandler<C
         throw new IllegalStateException("No items to select from.");
     }
 
-    @Override
-    public @Nullable YamlValue encode() {
-        Map<String, Object> result = new LinkedHashMap<>();
-        handlers.forEach((k, v) -> result.put(Double.toString(k), v.encode().getRaw()));
-        return YamlValue.wrap(result);
-    }
-
-    public static <C extends EventContext<C>> YamlCodec<WeightsHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
-        return YamlCodec.mapOf(YamlCodec.DOUBLE, codec)
-                .map(WeightsHandler::new, v -> v.handlers);
+    public static <C extends EventContext<C>> YamlDecoder<WeightsHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+        return YamlDecoder.mapOf(YamlDecoder.STRING
+                        .flatMap((ctx,s) -> YamlDecoder.DOUBLE.decode(ctx, YamlValue.wrap(s.replace(",", ".")))),
+                        codec)
+                .map(WeightsHandler::new);
     }
 }

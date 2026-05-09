@@ -314,10 +314,10 @@ class HandlerCodecBuilderTest {
         YamlMap map = YamlMap.load(new StringReader("""
                 test:
                   - weights:
-                      10:
+                      10,7:
                         - test: 123
-                      20:
-                        - test2: 321 
+                      20,9:
+                        - test2: 321
                   - test:
                       value1: '123'
                       value2: '321'"""));
@@ -337,7 +337,7 @@ class HandlerCodecBuilderTest {
             .create();
 
     private static <T extends EventContext<T>> EventHandler<T> decodeTest(YamlValue v) {
-        DataResult<EventHandler<T>> res = EventHandler.<T>codec().decode(v);
+        DataResult<EventHandler<T>> res = EventHandler.<T>decoder().decode(v);
         if (res.hasError()) {
             System.out.println(res.error());
         }
@@ -345,11 +345,6 @@ class HandlerCodecBuilderTest {
         if (t == null){
             res.getOrThrow();
         }
-        var encoded = t.encode();
-        YamlMap map = new YamlMap();
-        map.set("encoded", encoded);
-        System.out.println(map.saveToString());
-        System.out.println(gson.toJson(encoded));
         return t;
     }
 }

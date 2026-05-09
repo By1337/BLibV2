@@ -1,11 +1,8 @@
 package dev.by1337.edsl.handle;
 
-import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.EventHandler;
-import dev.by1337.yaml.YamlValue;
-import org.jetbrains.annotations.Nullable;
+import dev.by1337.edsl.context.EventContext;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ListHandler<C extends EventContext<C>> implements EventHandler<C> {
@@ -17,12 +14,12 @@ public class ListHandler<C extends EventContext<C>> implements EventHandler<C> {
 
     @Override
     public boolean handle(C ctx) {
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             ctx.log("[] -> true");
             return true;
         }
         boolean state = true;
-        try (var enter = ctx.enter("list [", "] -> %s")){
+        try (var enter = ctx.enter("list [", "] -> %s")) {
             enter.result(true);
             var iterator = list.iterator();
             while (iterator.hasNext()) {
@@ -31,22 +28,12 @@ public class ListHandler<C extends EventContext<C>> implements EventHandler<C> {
                     enter.result(false);
                     state = false;
                 }
-                if (iterator.hasNext()){
+                if (iterator.hasNext()) {
                     ctx.log("");
                 }
             }
         }
         return state;
-    }
-
-    @Override
-    public @Nullable YamlValue encode() {
-        List<Object> result = new ArrayList<>();
-        for (EventHandler<C> handler : list) {
-            var v = handler.encode();
-            if (v != null) result.add(v.getRaw());
-        }
-        return !result.isEmpty() ? YamlValue.wrap(result) : null;
     }
 
     public List<EventHandler<C>> list() {

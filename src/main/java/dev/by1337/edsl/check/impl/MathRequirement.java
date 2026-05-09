@@ -44,9 +44,4 @@ public record MathRequirement<C extends EventContext<C>>(String input) implement
             return null;
         }
     }
-
-    @Override
-    public YamlValue encode() {
-        return YamlValue.wrap(input);
-    }
 }

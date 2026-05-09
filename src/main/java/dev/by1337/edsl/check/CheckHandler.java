@@ -1,66 +1,52 @@
 package dev.by1337.edsl.check;
 
-import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.check.impl.MathRequirement;
 import dev.by1337.edsl.check.impl.StringsRequirement;
+import dev.by1337.edsl.context.EventContext;
+import dev.by1337.edsl.trace.EventTracer;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.DataResult;
-import dev.by1337.yaml.codec.YamlCodec;
-import org.jetbrains.annotations.Nullable;
+import dev.by1337.yaml.decoder.DecodeContext;
+import dev.by1337.yaml.decoder.YamlDecoder;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface CheckHandler<T extends EventContext<T>> extends EventHandler<T> {
-    static <T extends EventContext<T>> YamlCodec<CheckHandler<T>> codec(boolean oneOf) {
-        return new YamlCodec<>() {
+    static <T extends EventContext<T>> YamlDecoder<CheckHandler<T>> decoder() {
+        return new YamlDecoder<CheckHandler<T>>() {
+            private final YamlDecoder<List<CheckHandler<T>>> list = this.listOf();
+
             @Override
-            public DataResult<CheckHandler<T>> decode(YamlValue yaml) {
-                if (yaml.isList()) return yaml.asList(this)
-                        .mapValue(list -> new CheckHandler<T>() {
-                            @Override
-                            public boolean handle(T ctx) {
-                                try (var enter = ctx.enter("if-list oneOf: " + oneOf, "if-list -> %s")) {
-                                    boolean state = true;
-                                    for (CheckHandler<T> handler : list) {
-                                        if (handler.handle(ctx)) {
-                                            if (oneOf) {
-                                                enter.result(true);
-                                                return true;
-                                            }
-                                        } else if (oneOf) {
-                                            enter.result(false);
-                                            state = false;
-                                        } else {
-                                            enter.result(false);
-                                            return false;
-                                        }
-                                    }
-                                    return state;
+            public DataResult<CheckHandler<T>> decode(DecodeContext ctx, YamlValue yaml) {
+                var fromKey = ctx.getFromKey();
+                boolean oneOf = fromKey != null && fromKey.equals("if-one");
+                if (yaml.isCollection()) return list.decode(yaml).map(list -> c -> {
+                    try (EventTracer.TracerDepth enter = c.enter(oneOf ? "if-one" : "if", "if-list -> %s")) {
+                        boolean state = true;
+                        for (CheckHandler<T> handler : list) {
+                            if (handler.handle(c)) {
+                                if (oneOf) {
+                                    enter.result(true);
+                                    return true;
                                 }
+                            } else if (!oneOf) {
+                                enter.result(false);
+                                return false;
                             }
+                        }
+                        return state;
+                    }
+                });
 
-                            @Override
-                            public @Nullable YamlValue encode() {
-                                List<Object> result = new ArrayList<>();
-                                for (CheckHandler<T> handler : list) {
-                                    var v = handler.encode();
-                                    if (v != null) result.add(v.getRaw());
-                                }
-                                return !result.isEmpty() ? YamlValue.wrap(result) : null;
-
-                            }
-                        })
-                        ;
-                return YamlCodec.STRING.decode(yaml).flatMap(input -> {
+                return STRING.decode(ctx, yaml).flatMap(input -> {
                     if (input.equalsIgnoreCase("true")) return DataResult.success(CheckHandler.nopTrue());
                     if (input.equalsIgnoreCase("false")) return DataResult.success(CheckHandler.nopFalse());
                     String[] args = input.split(" ");
                     if (args.length == 3) {
                         var op = StringsRequirement.Operation.byOperator(args[1]);
-                        var v = new MathRequirement<>(input);
                         if (op == null)
                             return DataResult.success(tryMutate(new MathRequirement<>(input), MathRequirement::compile));
                         return DataResult.success(tryMutate(new StringsRequirement<>(op, args[0], args[2]), StringsRequirement::compile));
@@ -74,78 +60,42 @@ public interface CheckHandler<T extends EventContext<T>> extends EventHandler<T>
                 CheckHandler<T> out = mapper.apply(in);
                 return out != null ? out : in;
             }
-
-            @Override
-            public YamlValue encode(CheckHandler<T> c) {
-                return c.encode();
-            }
         };
     }
 
     static <T extends EventContext<T>> CheckHandler<T> nopTrue() {
-        return new CheckHandler<T>() {
-
-            @Override
-            public boolean handle(T ctx) {
-                ctx.log("if 'true' -> true");
-                return true;
-            }
-
-            @Override
-            public YamlValue encode() {
-                return YamlValue.wrap("true");
-            }
+        return ctx -> {
+            ctx.log("if 'true' -> true");
+            return true;
         };
     }
 
     static <T extends EventContext<T>> CheckHandler<T> nopFalse() {
-        return new CheckHandler<T>() {
-            @Override
-            public boolean handle(T ctx) {
-                ctx.log("if 'false' -> false");
-                return true;
-            }
-
-            @Override
-            public YamlValue encode() {
-                return YamlValue.wrap("false");
-            }
+        return ctx -> {
+            ctx.log("if 'false' -> false");
+            return true;
         };
     }
 
     static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp, Object... args) {
         return nopTrue(String.format(exp, args));
     }
-    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp) {
-        return new CheckHandler<T>() {
-            @Override
-            public boolean handle(T ctx) {
-                ctx.log("if '%s' -> true", exp);
-                return true;
-            }
 
-            @Override
-            public YamlValue encode() {
-                return YamlValue.wrap("true");
-            }
+    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp) {
+        return ctx -> {
+            ctx.log("if '%s' -> true", exp);
+            return true;
         };
     }
 
     static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp, Object... args) {
         return nopFalse(String.format(exp, args));
     }
-    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp) {
-        return new CheckHandler<T>() {
-            @Override
-            public boolean handle(T ctx) {
-                ctx.log("if '%s' -> false", exp);
-                return false;
-            }
 
-            @Override
-            public YamlValue encode() {
-                return YamlValue.wrap("false");
-            }
+    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp) {
+        return ctx -> {
+            ctx.log("if '%s' -> false", exp);
+            return false;
         };
     }
 }

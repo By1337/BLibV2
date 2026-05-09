@@ -53,9 +53,4 @@ public class CommandHandler<C extends EventContext<C>> implements EventHandler<C
         }
         return true;
     }
-
-    @Override
-    public YamlValue encode() {
-        return YamlValue.wrap(source);
-    }
 }

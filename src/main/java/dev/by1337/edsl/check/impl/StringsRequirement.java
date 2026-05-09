@@ -1,9 +1,8 @@
 package dev.by1337.edsl.check.impl;
 
-import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.check.CheckHandler;
+import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.util.LazyLoad;
-import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
-public record StringsRequirement<C extends EventContext<C>>(Operation op, String s, String s1) implements CheckHandler<C> {
+public record StringsRequirement<C extends EventContext<C>>(Operation op, String s,
+                                                            String s1) implements CheckHandler<C> {
 
 
     @Override
@@ -36,11 +36,6 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
         return new StringsRequirement<>(op.invert.get(), s, s1);
     }
 
-    @Override
-    public YamlValue encode() {
-        return YamlValue.wrap(s + " " + op.name + " " + s1);
-    }
-
     public enum Operation {
         CONTAINS(String::contains, "has", not_contains()),
         CONTAINS_IGNORE_CASE((s, s1) -> s.toLowerCase().contains(s1.toLowerCase()), "HAS", not_contains_ignore_case()),
@@ -62,7 +57,8 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
             this.name = name;
             this.invert = invert;
         }
-        public static @Nullable Operation byOperator(String op){
+
+        public static @Nullable Operation byOperator(String op) {
             return BY_OPERATOR.get(op);
         }
 
@@ -97,6 +93,7 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
         private static LazyLoad<Operation> equals_ignore_case() {
             return new LazyLoad<>(() -> EQUALS_IGNORE_CASE);
         }
+
         private static LazyLoad<Operation> not_equals_ignore_case() {
             return new LazyLoad<>(() -> NOT_EQUALS_IGNORE_CASE);
         }
@@ -108,6 +105,7 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
         private static LazyLoad<Operation> not_equals() {
             return new LazyLoad<>(() -> NOT_EQUALS);
         }
+
         static {
             BY_OPERATOR = new HashMap<>();
             for (Operation value : values()) {

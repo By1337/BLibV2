@@ -4,6 +4,7 @@ import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.YamlCodec;
+import dev.by1337.yaml.decoder.YamlDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -39,12 +40,7 @@ public class AllPlayersHandler<C extends EventContext<C>> implements EventHandle
         return state;
     }
 
-    @Override
-    public @Nullable YamlValue encode() {
-        return YamlValue.wrap(Map.of("all_players", handler.doEncode().getRaw()));
-    }
-
-    public static <C extends EventContext<C>> YamlCodec<AllPlayersHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
-        return codec.map(AllPlayersHandler::new, v -> v.handler);
+    public static <C extends EventContext<C>> YamlDecoder<AllPlayersHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+        return codec.map(AllPlayersHandler::new);
     }
 }

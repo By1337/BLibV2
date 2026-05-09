@@ -5,6 +5,7 @@ import dev.by1337.edsl.EventHandler;
 import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.codec.RecordYamlCodecBuilder;
 import dev.by1337.yaml.codec.YamlCodec;
+import dev.by1337.yaml.decoder.YamlDecoder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -38,24 +39,11 @@ public class OneOfHandler<C extends EventContext<C>> implements EventHandler<C> 
         }
     }
 
-    @Override
-    public @Nullable YamlValue encode() {
-        List<Object> result = new ArrayList<>();
-        for (EventHandler<C> handler : list) {
-            var v = handler.encode();
-            if (v != null) result.add(v.getRaw());
-        }
-        return !result.isEmpty() ? YamlValue.wrap(Map.of("oneOf", result)) : null;
-    }
-
     public List<EventHandler<C>> list() {
         return list;
     }
 
-    public static <C extends EventContext<C>> YamlCodec<OneOfHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
-        return RecordYamlCodecBuilder.mapOf(
-                OneOfHandler::new,
-                codec.listOf().fieldOf("oneOf", OneOfHandler::list)
-        );
+    public static <C extends EventContext<C>> YamlDecoder<OneOfHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+        return codec.listOf().map(OneOfHandler::new);
     }
 }

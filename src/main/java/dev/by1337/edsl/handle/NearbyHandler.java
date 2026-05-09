@@ -3,7 +3,9 @@ package dev.by1337.edsl.handle;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlValue;
+import dev.by1337.yaml.codec.DataResult;
 import dev.by1337.yaml.codec.YamlCodec;
+import dev.by1337.yaml.decoder.YamlDecoder;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -18,6 +20,11 @@ public class NearbyHandler<C extends EventContext<C>> implements EventHandler<C>
 
     public NearbyHandler(EventHandler<C> handler) {
         this.handler = handler;
+    }
+
+    public NearbyHandler(EventHandler<C> handler, double radius) {
+        this.handler = handler;
+        this.radius = radius;
     }
 
     @Override
@@ -57,15 +64,13 @@ public class NearbyHandler<C extends EventContext<C>> implements EventHandler<C>
         return this;
     }
 
-    @Override
-    public @Nullable YamlValue encode() {
-        return YamlValue.wrap(Map.of(
-                "nearby-" + Double.toString(radius).replace(".", ","),
-                handler.doEncode().getRaw())
-        );
-    }
-
-    public static <C extends EventContext<C>> YamlCodec<NearbyHandler<C>> codec(YamlCodec<EventHandler<C>> codec) {
-        return codec.map(NearbyHandler::new, v -> v.handler);
+    public static <C extends EventContext<C>> YamlDecoder<NearbyHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+        return codec.flatMap((ctx, v) -> {
+            var key = ctx.getFromKey();
+            if (key == null) return DataResult.error("Has no $FromKey");
+            var arr = key.split("-", 2);
+            if (arr.length != 2) return DataResult.error("Bad radius " + key);
+            return YamlDecoder.DOUBLE.decode(ctx, YamlValue.wrap(arr[1])).map(r -> new NearbyHandler<>(v, r));
+        });
     }
 }

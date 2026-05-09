@@ -40,7 +40,7 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
             this.placeholders = placeholders.and((PlaceholderResolver<T>) PLACEHOLDERS);
         }
         this.player = target = player;
-        if (player != null){
+        if (player != null) {
             setLocation(player.getLocation());
         }
         if (debug) {
@@ -56,11 +56,11 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
         return location;
     }
 
-   protected void setLocation(Location location) {
+    protected void setLocation(Location location) {
         this.location = location;
     }
 
-    @Nullable Player player() {
+    public @Nullable Player source() {
         return player;
     }
 
@@ -127,7 +127,7 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
             PLACEHOLDERS = Placeholders.<EventContext<?>>create()
                     .of("target", (papi, ctx) ->
                             PapiResolver.INSTANCE.setPlaceholders("%" + papi + "%", ctx.target))
-                    .and(PapiResolver.INSTANCE.map(EventContext::player));
+                    .and(PapiResolver.INSTANCE.map(EventContext::source));
         }
     }
 }
