@@ -244,7 +244,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <filtering>true</filtering>
+                <filtering>false</filtering>
             </resource>
         </resources>
     </build>
@@ -283,7 +283,7 @@
         <dependency>
             <groupId>dev.by1337.yaml</groupId>
             <artifactId>byaml-bukkit</artifactId>
-            <version>1.4.1</version>
+            <version>1.5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -323,6 +323,12 @@
             <artifactId>asm</artifactId>
             <version>9.9.1</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>8.2.2</version> <!-- 1.16.5 version-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

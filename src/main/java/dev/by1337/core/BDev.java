@@ -60,6 +60,7 @@ public class BDev extends JavaPlugin {
         particles = new ParticleRenderBootstrapper("bdev-particles", this);
         particles.enable();
         int ignored = ItemType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
+        int ignored2 = BlockType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
     }
 
     @Override

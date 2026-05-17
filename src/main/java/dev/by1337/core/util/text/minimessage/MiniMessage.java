@@ -3,6 +3,7 @@ package dev.by1337.core.util.text.minimessage;
 import dev.by1337.core.BDev;
 import dev.by1337.core.util.RepositoryUtil;
 import dev.by1337.core.util.asm.AsmUtils;
+import dev.by1337.core.util.text.FontWidth;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.objectweb.asm.ClassWriter;
@@ -20,12 +21,33 @@ import java.util.function.Function;
 public class MiniMessage {
     private static final Function<String, Component> MINI_MESSAGE;
 
+    private static final int DEFAULT_CHAT_WIDTH = 320;
+    private static final int SPACE_WIDTH = 4;
+
     public static Component deserialize(String text) {
-        return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+        if (text.startsWith("<center>")) {
+            Component component = MINI_MESSAGE.apply(
+                    Legacy2MiniMessage.convert(text.substring(8))
+            );
+
+            int width = FontWidth.getPixels(component);
+
+            int toCompensate = (DEFAULT_CHAT_WIDTH - width) / 2;
+
+            if (toCompensate <= 0) {
+                return component;
+            }
+
+            int spaces = toCompensate / SPACE_WIDTH;
+
+            return Component.text(" ".repeat(spaces)).append(component);
+        } else {
+            return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+        }
     }
 
     static {
-        Function<String, Component> fun = null;
+        Function<String, Component> fun;
         try {
             Class<?> miniMsg = Class.forName("net.kyori.adventure.text.minimessage.MiniMessage");
             String getter;
