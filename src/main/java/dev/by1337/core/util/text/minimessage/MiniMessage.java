@@ -5,6 +5,7 @@ import dev.by1337.core.util.RepositoryUtil;
 import dev.by1337.core.util.asm.AsmUtils;
 import dev.by1337.core.util.text.FontWidth;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -22,28 +23,76 @@ public class MiniMessage {
     private static final Function<String, Component> MINI_MESSAGE;
 
     private static final int DEFAULT_CHAT_WIDTH = 320;
-    private static final int SPACE_WIDTH = 4;
+    private static final int DEFAULT_TITLE_WIDTH = 162;
+    private static final int DEFAULT_PADDING_WIDTH = 168;
 
     public static Component deserialize(String text) {
         if (text.startsWith("<center>")) {
-            Component component = MINI_MESSAGE.apply(
-                    Legacy2MiniMessage.convert(text.substring(8))
-            );
-
-            int width = FontWidth.getPixels(component);
-
-            int toCompensate = (DEFAULT_CHAT_WIDTH - width) / 2;
-
-            if (toCompensate <= 0) {
-                return component;
-            }
-
-            int spaces = toCompensate / SPACE_WIDTH;
-
-            return Component.text(" ".repeat(spaces)).append(component);
+            var c = deserialize0(text.substring(8));
+            return compensate(c, DEFAULT_CHAT_WIDTH).append(c);
+        } else if (text.startsWith("<title_center>")) {
+            var c = deserialize0(text.substring(14));
+            return compensate(c, DEFAULT_TITLE_WIDTH).append(c);
+        } else if (text.contains("<off_title>")) {
+            var arr = text.split("<off_title>");
+            Component first = deserialize0(arr[0]);
+            String second = arr[1];
+            int appendPixels = DEFAULT_PADDING_WIDTH - FontWidth.getPixels(first);
+            return Component.empty()
+                    .append(first)
+                    .append(createWidth(appendPixels))
+                    .append(deserialize0(second));
         } else {
-            return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+            return deserialize0(text);
         }
+    }
+    private static Component deserialize0(String text){
+        return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+    }
+
+    private static Component compensate(Component component, int targetWidth) {
+        int width = FontWidth.getPixels(component);
+        int toCompensate = (targetWidth - width) / 2;
+        if (toCompensate <= 0) {
+            return Component.empty();
+        }
+        return createWidth(toCompensate);
+    }
+
+    public static Component createWidth(int pixels) {
+        if (pixels <= 0) return Component.empty();
+        if (pixels == 2) {
+            return buildComponent(4);
+        }
+        if (pixels == 6) {
+            return buildComponent(8);
+        }
+        if (pixels % 2 == 0) {
+            return buildComponent(pixels);
+        }
+        int evenPixels = pixels + 1;
+        return buildComponent(evenPixels);
+    }
+
+    private static Component buildComponent(int exactLength) {
+        int bestA = 0;
+        int bestB = 0;
+        for (int b = (exactLength / 5) * 2; b >= 0; b -= 2) {
+            int remaining = exactLength - 5 * b;
+            if (remaining >= 0 && remaining % 4 == 0) {
+                bestA = remaining / 4;
+                bestB = b;
+                break;
+            }
+        }
+        Component result = Component.empty();
+        for (int i = 0; i < bestA; i++) {
+            result = result.append(Component.text(" "));
+        }
+        for (int i = 0; i < bestB; i++) {
+            result = result.append(Component.text(" ").decoration(TextDecoration.BOLD, true));
+        }
+        return result;
     }
 
     static {

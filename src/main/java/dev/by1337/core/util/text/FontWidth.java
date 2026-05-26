@@ -16,7 +16,7 @@ import java.net.URLConnection;
 import java.util.Objects;
 
 public class FontWidth {
-    private static final Int2FloatMap FRONT = new Int2FloatOpenHashMap();
+    public static final Int2FloatMap FRONT = new Int2FloatOpenHashMap();
 
     public static int getPixels(Component c) {
         return ceil(getWidth(c));
