@@ -22,31 +22,33 @@ import java.util.function.Function;
 public class MiniMessage {
     private static final Function<String, Component> MINI_MESSAGE;
 
-    private static final int DEFAULT_CHAT_WIDTH = 320;
-    private static final int DEFAULT_TITLE_WIDTH = 162;
-    private static final int DEFAULT_PADDING_WIDTH = 168;
+    private static final int CHAT_WIDTH = 320;
+    private static final int TITLE_WIDTH = 162;
+    private static final int OFF_TITLE_WIDTH = 168;
 
     public static Component deserialize(String text) {
-        if (text.startsWith("<center>")) {
-            var c = deserialize0(text.substring(8));
-            return compensate(c, DEFAULT_CHAT_WIDTH).append(c);
-        } else if (text.startsWith("<title_center>")) {
-            var c = deserialize0(text.substring(14));
-            return compensate(c, DEFAULT_TITLE_WIDTH).append(c);
-        } else if (text.contains("<off_title>")) {
+        if (text.contains("<off_title>")) {
             var arr = text.split("<off_title>");
-            Component first = deserialize0(arr[0]);
+            Component first = deserialize(arr[0]);
             String second = arr[1];
-            int appendPixels = DEFAULT_PADDING_WIDTH - FontWidth.getPixels(first);
+            int appendPixels = OFF_TITLE_WIDTH - FontWidth.getPixels(first);
             return Component.empty()
                     .append(first)
                     .append(createWidth(appendPixels))
                     .append(deserialize0(second));
+        } else if (text.startsWith("<center>")) {
+            // \n?
+            var c = deserialize0(text.substring(8));
+            return compensate(c, CHAT_WIDTH).append(c);
+        } else if (text.startsWith("<title_center>")) {
+            var c = deserialize0(text.substring(14));
+            return compensate(c, TITLE_WIDTH).append(c);
         } else {
             return deserialize0(text);
         }
     }
-    private static Component deserialize0(String text){
+
+    private static Component deserialize0(String text) {
         return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
     }
 
@@ -59,40 +61,43 @@ public class MiniMessage {
         return createWidth(toCompensate);
     }
 
-    public static Component createWidth(int pixels) {
-        if (pixels <= 0) return Component.empty();
-        if (pixels == 2) {
-            return buildComponent(4);
-        }
-        if (pixels == 6) {
-            return buildComponent(8);
-        }
-        if (pixels % 2 == 0) {
-            return buildComponent(pixels);
-        }
-        int evenPixels = pixels + 1;
-        return buildComponent(evenPixels);
+
+    private static int normalize(int n) {
+        int mod = n % 20;
+
+        return switch (mod) {
+            case 1, 6, 11 -> n - 1;
+            case 2 -> n - 2;
+            case 3, 7 -> n + 1;
+            default -> n;
+        };
     }
 
-    private static Component buildComponent(int exactLength) {
-        int bestA = 0;
-        int bestB = 0;
-        for (int b = (exactLength / 5) * 2; b >= 0; b -= 2) {
-            int remaining = exactLength - 5 * b;
-            if (remaining >= 0 && remaining % 4 == 0) {
-                bestA = remaining / 4;
-                bestB = b;
-                break;
-            }
+    private static Component createWidth(int pixels) {
+        if (pixels <= 0) {
+            return Component.empty();
         }
-        Component result = Component.empty();
-        for (int i = 0; i < bestA; i++) {
-            result = result.append(Component.text(" "));
+
+        int normalized = normalize(pixels);
+
+        int bold = normalized % 4;
+        int normal = (normalized - bold * 5) / 4;
+
+        Component component = Component.empty();
+
+        if (normal > 0) {
+            component = component.append(
+                    Component.text(" ".repeat(normal))
+            );
         }
-        for (int i = 0; i < bestB; i++) {
-            result = result.append(Component.text(" ").decoration(TextDecoration.BOLD, true));
+
+        if (bold > 0) {
+            component = component.append(
+                    Component.text(" ".repeat(bold))
+                            .decoration(TextDecoration.BOLD, true)
+            );
         }
-        return result;
+        return component;
     }
 
     static {
