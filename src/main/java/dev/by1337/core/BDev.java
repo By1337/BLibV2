@@ -109,7 +109,7 @@ public class BDev extends JavaPlugin {
                             StringBuilder out = new StringBuilder();
                             out.append("out\n");
                             for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
-                                if (entry.getValue() instanceof ChannelOutboundHandler){
+                                if (entry.getValue() instanceof ChannelOutboundHandler) {
                                     out.append(entry.getKey()).append(" ").append(entry.getValue().getClass().getSimpleName()).append("\n");
                                 }
                             }
