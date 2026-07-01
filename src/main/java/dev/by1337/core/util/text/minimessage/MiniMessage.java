@@ -22,6 +22,7 @@ import java.util.function.Function;
 public class MiniMessage {
     private static final Function<String, Component> MINI_MESSAGE;
 
+    private static final Component br = Component.text('\n');
     private static final int CHAT_WIDTH = 320;
     private static final int TITLE_WIDTH = 162;
     private static final int OFF_TITLE_WIDTH = 168;
@@ -36,13 +37,47 @@ public class MiniMessage {
                     .append(first)
                     .append(createWidth(appendPixels))
                     .append(deserialize0(second));
-        } else if (text.startsWith("<center>")) {
-            // \n?
-            var c = deserialize0(text.substring(8));
-            return compensate(c, CHAT_WIDTH).append(c);
-        } else if (text.startsWith("<title_center>")) {
-            var c = deserialize0(text.substring(14));
-            return compensate(c, TITLE_WIDTH).append(c);
+        } else if (text.contains("<title_center>")) {
+            var arr = text.split("<title_center>");
+            Component first = deserialize(arr[0]);
+            Component second = deserialize0(arr[1]);
+            int firstWidth = FontWidth.getPixels(first);
+            int secondWidth = FontWidth.getPixels(second);
+
+            int targetX = (TITLE_WIDTH - secondWidth) / 2;
+            int padding = targetX - firstWidth;
+
+            return Component.empty()
+                    .append(first)
+                    .append(createWidth(Math.max(0, padding)))
+                    .append(second);
+        } else if (text.contains("<center>")) {
+            if (text.contains("\n") || text.contains("<br>")) {
+                var arr = text.replace("<br>", "\n").split("\n");
+                var res = Component.empty();
+                for (int i = 0; i < arr.length; i++) {
+                    var s = arr[i];
+                    res = res.append(deserialize(s));
+                    if (i != arr.length - 1) {
+                        res = res.append(br);
+                    }
+                }
+                return res;
+            }
+            var arr = text.split("<center>");
+            Component first = deserialize(arr[0]);
+            Component second = deserialize0(arr[1]);
+            int firstWidth = FontWidth.getPixels(first);
+            int secondWidth = FontWidth.getPixels(second);
+
+            int targetX = (CHAT_WIDTH - secondWidth) / 2;
+            int padding = targetX - firstWidth;
+
+            return Component.empty()
+                    .append(first)
+                    .append(createWidth(Math.max(0, padding)))
+                    .append(second);
+
         } else {
             return deserialize0(text);
         }
@@ -52,48 +87,40 @@ public class MiniMessage {
         return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
     }
 
-    private static Component compensate(Component component, int targetWidth) {
-        int width = FontWidth.getPixels(component);
-        int toCompensate = (targetWidth - width) / 2;
-        if (toCompensate <= 0) {
-            return Component.empty();
-        }
-        return createWidth(toCompensate);
-    }
-
-
-    private static int normalize(int n) {
-        int mod = n % 20;
-
-        return switch (mod) {
-            case 1, 6, 11 -> n - 1;
-            case 2 -> n - 2;
-            case 3, 7 -> n + 1;
-            default -> n;
-        };
-    }
-
     private static Component createWidth(int pixels) {
         if (pixels <= 0) {
             return Component.empty();
         }
 
-        int normalized = normalize(pixels);
-
-        int bold = normalized % 4;
-        int normal = (normalized - bold * 5) / 4;
-
+        int b = 0;
+        int n = 0;
+        switch (pixels) {
+            case 1, 2 -> {
+                return Component.empty();
+            }
+            case 3 -> n = 1;
+            case 7 -> n = 2;
+            default -> {
+                while (pixels % 4 != 0 && pixels >= 5) {
+                    b++;
+                    pixels -= 5;
+                }
+                if (pixels != 0) {
+                    n += pixels / 4;
+                }
+            }
+        }
         Component component = Component.empty();
 
-        if (normal > 0) {
+        if (n > 0) {
             component = component.append(
-                    Component.text(" ".repeat(normal))
+                    Component.text(" ".repeat(n))
             );
         }
 
-        if (bold > 0) {
+        if (b > 0) {
             component = component.append(
-                    Component.text(" ".repeat(bold))
+                    Component.text(" ".repeat(b))
                             .decoration(TextDecoration.BOLD, true)
             );
         }
