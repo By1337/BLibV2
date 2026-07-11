@@ -1,6 +1,6 @@
 name: BLib
 main: dev.by1337.core.BDev
-version: '1.7.4'
+version: '1.7.5'
 author: By1337
 api-version: '1.16'
 permissions:
