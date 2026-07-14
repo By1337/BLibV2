@@ -63,6 +63,11 @@ on_click:
     do:
       if: '88 == 88' # можно указывать if внутри других if
       do: 'Вложенный if'
+  - weights:
+      10,7:
+        - test: 123
+      20,9:
+        - test2: 321
 on_left_click:
   - oneOf: # oneOf команды, это команды которые останавливаются на первом успешном if
       - if: '%vault_eco_balance% < 1000'

@@ -15,19 +15,19 @@ import java.util.List;
 import java.util.function.Function;
 
 @FunctionalInterface
-public interface CheckHandler<T extends EventContext<T>> extends EventHandler<T> {
-    static <T extends EventContext<T>> YamlDecoder<CheckHandler<T>> decoder() {
-        return new YamlDecoder<CheckHandler<T>>() {
-            private final YamlDecoder<List<CheckHandler<T>>> list = this.listOf();
+public interface CheckHandler extends EventHandler {
+    static <T extends EventContext> YamlDecoder<CheckHandler> decoder() {
+        return new YamlDecoder<CheckHandler>() {
+            private final YamlDecoder<List<CheckHandler>> list = this.listOf();
 
             @Override
-            public DataResult<CheckHandler<T>> decode(DecodeContext ctx, YamlValue yaml) {
+            public DataResult<CheckHandler> decode(DecodeContext ctx, YamlValue yaml) {
                 var fromKey = ctx.getFromKey();
                 boolean oneOf = fromKey != null && fromKey.equals("if-one");
                 if (yaml.isCollection()) return list.decode(yaml).map(list -> c -> {
-                    try (EventTracer.TracerDepth enter = c.enter(oneOf ? "if-one" : "if", "if-list -> %s")) {
+                    try (EventTracer.TracerDepth enter = c.tracer().enter(oneOf ? "if-one" : "if", "if-list -> %s")) {
                         boolean state = true;
-                        for (CheckHandler<T> handler : list) {
+                        for (CheckHandler handler : list) {
                             if (handler.handle(c)) {
                                 if (oneOf) {
                                     enter.result(true);
@@ -48,59 +48,59 @@ public interface CheckHandler<T extends EventContext<T>> extends EventHandler<T>
                     String[] args = input.split(" ");
                     if (args.length == 2) {
                         if (args[0].equals("has")) {
-                            return DataResult.success(new PermissionRequirement<>(args[1]));
+                            return DataResult.success(new PermissionRequirement(args[1]));
                         } else if (args[0].equals("!has")) {
-                            return DataResult.success(new PermissionRequirement<T>(args[1]).invert());
+                            return DataResult.success(new PermissionRequirement(args[1]).invert());
                         }
                     } else if (args.length == 3) {
                         var op = StringsRequirement.Operation.byOperator(args[1]);
                         if (op == null)
-                            return DataResult.success(tryMutate(new MathRequirement<>(input), MathRequirement::compile));
-                        return DataResult.success(tryMutate(new StringsRequirement<>(op, args[0], args[2]), StringsRequirement::compile));
+                            return DataResult.success(tryMutate(new MathRequirement(input), MathRequirement::compile));
+                        return DataResult.success(tryMutate(new StringsRequirement(op, args[0], args[2]), StringsRequirement::compile));
                     }
-                    return DataResult.success(tryMutate(new MathRequirement<>(input), MathRequirement::compile));
+                    return DataResult.success(tryMutate(new MathRequirement(input), MathRequirement::compile));
                 });
             }
 
-            private <E extends CheckHandler<T>> CheckHandler<T> tryMutate(E in, Function<E, CheckHandler<T>> mapper) {
-                CheckHandler<T> out = mapper.apply(in);
+            private <E extends CheckHandler> CheckHandler tryMutate(E in, Function<E, CheckHandler> mapper) {
+                CheckHandler out = mapper.apply(in);
                 return out != null ? out : in;
             }
         };
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopTrue() {
+    static <T extends EventContext> CheckHandler nopTrue() {
         return ctx -> {
-            ctx.log("if 'true' -> true");
+            ctx.tracer().log("if 'true' -> true");
             return true;
         };
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopFalse() {
+    static <T extends EventContext> CheckHandler nopFalse() {
         return ctx -> {
-            ctx.log("if 'false' -> false");
+            ctx.tracer().log("if 'false' -> false");
             return true;
         };
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp, Object... args) {
+    static <T extends EventContext> CheckHandler nopTrue(String exp, Object... args) {
         return nopTrue(String.format(exp, args));
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopTrue(String exp) {
+    static <T extends EventContext> CheckHandler nopTrue(String exp) {
         return ctx -> {
-            ctx.log("if '%s' -> true", exp);
+            ctx.tracer().log("if '%s' -> true", exp);
             return true;
         };
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp, Object... args) {
+    static <T extends EventContext> CheckHandler nopFalse(String exp, Object... args) {
         return nopFalse(String.format(exp, args));
     }
 
-    static <T extends EventContext<T>> CheckHandler<T> nopFalse(String exp) {
+    static <T extends EventContext> CheckHandler nopFalse(String exp) {
         return ctx -> {
-            ctx.log("if '%s' -> false", exp);
+            ctx.tracer().log("if '%s' -> false", exp);
             return false;
         };
     }

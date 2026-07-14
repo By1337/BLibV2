@@ -15,20 +15,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class ConditionalHandler<C extends EventContext<C>> implements EventHandler<C> {
-    private final CheckHandler<C> tester;
-    private final EventHandler<C> success;
-    private final EventHandler<C> failure;
+public class ConditionalHandler implements EventHandler {
+    private final CheckHandler tester;
+    private final EventHandler success;
+    private final EventHandler failure;
 
-    private ConditionalHandler(CheckHandler<C> tester, EventHandler<C> success, EventHandler<C> failure) {
+    private ConditionalHandler(CheckHandler tester, EventHandler success, EventHandler failure) {
         this.tester = Objects.requireNonNullElse(tester, CheckHandler.nopTrue());
         this.success = success;
         this.failure = failure;
     }
 
     @Override
-    public boolean handle(C ctx) {
-        try (var enter = ctx.enter("if-do {", "} -> %s")){
+    public boolean handle(EventContext ctx) {
+        try (var enter = ctx.tracer().enter("if-do {", "} -> %s")){
             if (tester.handle(ctx)) {
                 if (success != null)
                     success.handle(ctx);
@@ -43,8 +43,8 @@ public class ConditionalHandler<C extends EventContext<C>> implements EventHandl
     }
 
 
-    public static <T extends EventContext<T>> YamlDecoder<ConditionalHandler<T>> decoder(YamlDecoder<EventHandler<T>> codec) {
-        YamlDecoder<CheckHandler<T>> ifDecoder = CheckHandler.decoder();
+    public static YamlDecoder<ConditionalHandler> decoder(YamlDecoder<EventHandler> codec) {
+        YamlDecoder<CheckHandler> ifDecoder = CheckHandler.decoder();
         return RecordYamlDecoder.mapOf(
                 ConditionalHandler::new,
                 ifDecoder.fieldOf("if")

@@ -12,26 +12,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class OneOfHandler<C extends EventContext<C>> implements EventHandler<C> {
-    private final List<EventHandler<C>> list;
+public class OneOfHandler implements EventHandler {
+    private final List<EventHandler> list;
 
-    public OneOfHandler(List<EventHandler<C>> list) {
+    public OneOfHandler(List<EventHandler> list) {
         this.list = list;
     }
 
     @Override
-    public boolean handle(C ctx) {
-        try (var enter = ctx.enter("oneOf [", "] -> %s")){
+    public boolean handle(EventContext ctx) {
+        try (var enter = ctx.tracer().enter("oneOf [", "] -> %s")){
             enter.result(false);
             var iterator = list.iterator();
             while (iterator.hasNext()){
-                EventHandler<C> handler = iterator.next();
+                EventHandler handler = iterator.next();
                 if (handler.handle(ctx)) {
                     enter.result(true);
                     return true;
                 }
                 if (iterator.hasNext()){
-                    ctx.log("");
+                    ctx.tracer().log("");
                 }
             }
             enter.result(false);
@@ -39,11 +39,11 @@ public class OneOfHandler<C extends EventContext<C>> implements EventHandler<C> 
         }
     }
 
-    public List<EventHandler<C>> list() {
+    public List<EventHandler> list() {
         return list;
     }
 
-    public static <C extends EventContext<C>> YamlDecoder<OneOfHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+    public static YamlDecoder<OneOfHandler> decoder(YamlDecoder<EventHandler> codec) {
         return codec.listOf().map(OneOfHandler::new);
     }
 }

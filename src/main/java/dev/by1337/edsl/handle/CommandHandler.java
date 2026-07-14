@@ -9,11 +9,11 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CommandHandler<C extends EventContext<C>> implements EventHandler<C> {
+public class CommandHandler implements EventHandler {
     private static final Logger log = LoggerFactory.getLogger(CommandHandler.class);
     private final String source;
-    private @Nullable CompiledCommand<C> compiled;
-    private @Nullable Command<C> lastExecutor;
+    private @Nullable CompiledCommand<EventContext> compiled;
+    private @Nullable Command<EventContext> lastExecutor;
     private boolean canBeCompiled;
     private final boolean hasPlaceholders;
 
@@ -24,8 +24,8 @@ public class CommandHandler<C extends EventContext<C>> implements EventHandler<C
     }
 
     @Override
-    public boolean handle(C ctx) {
-        Command<C> executor = ctx.command();
+    public boolean handle(EventContext ctx) {
+        Command<EventContext> executor = ctx.command();
         if (compiled != null && executor == lastExecutor) {
             try (var ignored = ctx.tracer().timing("run: %s", source)){
                 compiled.execute(ctx);

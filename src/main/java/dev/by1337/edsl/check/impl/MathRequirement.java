@@ -8,12 +8,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record MathRequirement<C extends EventContext<C>>(String input) implements CheckHandler<C> {
+public record MathRequirement(String input) implements CheckHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MathRequirement.class);
 
     @Override
-    public boolean handle(C ctx) {
+    public boolean handle(EventContext ctx) {
         String s = ctx.setPlaceholders(input);
         try {
             var v = FastExpressionParser.parse(s) == 1D;
@@ -29,11 +29,11 @@ public record MathRequirement<C extends EventContext<C>>(String input) implement
         }
     }
 
-    public CheckHandler<C> invert() {
-        return new MathRequirement<>("(" + input + ") == 0");
+    public CheckHandler invert() {
+        return new MathRequirement("(" + input + ") == 0");
     }
 
-    public @Nullable CheckHandler<C> compile() {
+    public @Nullable CheckHandler compile() {
         //rnd, irnd
         if (input.contains("{") || input.contains("%") || input.contains("rnd")) return null;
         try {

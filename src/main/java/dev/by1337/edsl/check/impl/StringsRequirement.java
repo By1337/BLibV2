@@ -10,12 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
-public record StringsRequirement<C extends EventContext<C>>(Operation op, String s,
-                                                            String s1) implements CheckHandler<C> {
+public record StringsRequirement(Operation op, String s, String s1) implements CheckHandler {
 
 
     @Override
-    public boolean handle(C ctx) {
+    public boolean handle(EventContext ctx) {
         var left = ctx.setPlaceholders(s);
         var right = ctx.setPlaceholders(s1);
         var v = op.test.test(left, right);
@@ -23,7 +22,7 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
         return v;
     }
 
-    public @Nullable CheckHandler<C> compile() {
+    public @Nullable CheckHandler compile() {
         if (s.contains("{") || s.contains("%") ||
                 s1.contains("{") || s1.contains("%")
         ) return null;
@@ -32,8 +31,8 @@ public record StringsRequirement<C extends EventContext<C>>(Operation op, String
                 CheckHandler.nopFalse("%s %s %s", s, op.name, s1);
     }
 
-    public StringsRequirement<C> invert() {
-        return new StringsRequirement<>(op.invert.get(), s, s1);
+    public StringsRequirement invert() {
+        return new StringsRequirement(op.invert.get(), s, s1);
     }
 
     public enum Operation {

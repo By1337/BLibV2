@@ -5,38 +5,38 @@ import dev.by1337.edsl.context.EventContext;
 
 import java.util.List;
 
-public class ListHandler<C extends EventContext<C>> implements EventHandler<C> {
-    private final List<EventHandler<C>> list;
+public class ListHandler implements EventHandler {
+    private final List<EventHandler> list;
 
-    public ListHandler(List<EventHandler<C>> list) {
+    public ListHandler(List<EventHandler> list) {
         this.list = list;
     }
 
     @Override
-    public boolean handle(C ctx) {
+    public boolean handle(EventContext ctx) {
         if (list.isEmpty()) {
-            ctx.log("[] -> true");
+            ctx.tracer().log("[] -> true");
             return true;
         }
         boolean state = true;
-        try (var enter = ctx.enter("list [", "] -> %s")) {
+        try (var enter = ctx.tracer().enter("list [", "] -> %s")) {
             enter.result(true);
             var iterator = list.iterator();
             while (iterator.hasNext()) {
-                EventHandler<C> handler = iterator.next();
+                EventHandler handler = iterator.next();
                 if (!handler.handle(ctx)) {
                     enter.result(false);
                     state = false;
                 }
                 if (iterator.hasNext()) {
-                    ctx.log("");
+                    ctx.tracer().log("");
                 }
             }
         }
         return state;
     }
 
-    public List<EventHandler<C>> list() {
+    public List<EventHandler> list() {
         return list;
     }
 }

@@ -1,47 +1,54 @@
 package dev.by1337.edsl.context;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.edsl.messages.Messages;
 import dev.by1337.edsl.trace.EventTracer;
 import dev.by1337.plc.PapiResolver;
 import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.plc.PlaceholderResolver;
 import dev.by1337.plc.Placeholders;
+import dev.by1337.yaml.decoder.DecodeContext;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public abstract class EventContext<T extends EventContext<T>> implements PlaceholderApplier, AutoCloseable {
-    private static final PlaceholderResolver<EventContext<?>> PLACEHOLDERS;
+public class EventContext implements PlaceholderApplier, AutoCloseable {
+    private static final PlaceholderResolver<EventContext> PLACEHOLDERS;
+    private static final Logger log = LoggerFactory.getLogger(EventContext.class);
     public final EventTracer tracer;
     private final @Nullable StringBuilder tracerLog;
-    private final @Nullable Player player;
-    private final PlaceholderResolver<T> placeholders;
-    private Player target;
-    private Location location;
+    private final PlaceholderResolver<EventContext> placeholders;
+
+    private final @Nullable Player source;
+    private @Nullable Player target;
+    private Messages messages;
+    private Command<EventContext> command;
+    private List<Object> context = new ArrayList<>();
 
     public EventContext(boolean debug) {
         this(debug, null);
     }
 
-    public EventContext(boolean debug, @Nullable Player player) {
-        this(debug, player, null);
+    public EventContext(boolean debug, @Nullable Player source) {
+        this(debug, source, null);
     }
 
-    public EventContext(boolean debug, @Nullable Player player, @Nullable PlaceholderResolver<T> placeholders) {
+    public EventContext(boolean debug, @Nullable Player source, @Nullable PlaceholderResolver<EventContext> placeholders) {
         if (placeholders == null) {
-            // noinspection unchecked
-            this.placeholders = (PlaceholderResolver<T>) PLACEHOLDERS;
+            this.placeholders = PLACEHOLDERS;
         } else {
-            // noinspection unchecked
-            this.placeholders = placeholders.and((PlaceholderResolver<T>) PLACEHOLDERS);
+            this.placeholders = placeholders.and(PLACEHOLDERS);
         }
-        this.player = target = player;
-        if (player != null) {
-            setLocation(player.getLocation());
+        this.source = target = source;
+        if (source != null) {
+            context.add(source.getLocation());
         }
         if (debug) {
             tracerLog = new StringBuilder();
@@ -52,16 +59,26 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
         }
     }
 
-    public Location location() {
-        return location;
+    public <T> Scope with(T o) {
+        List<Object> old = this.context;
+        this.context = new ArrayList<>(this.context.size() + 1);
+        this.context.add(o);
+        this.context.addAll(old);
+        return () -> this.context = old;
     }
 
-    protected void setLocation(Location location) {
-        this.location = location;
+    public <T> @Nullable T get(Class<T> type){
+        for (int i = this.context.size() - 1; i >= 0; i--) {
+            var o = this.context.get(i);
+            if (type.isInstance(o)) {
+                return (T) o;
+            }
+        }
+        return null;
     }
 
     public @Nullable Player source() {
-        return player;
+        return source;
     }
 
     public @Nullable Player target() {
@@ -82,8 +99,7 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
 
     @Override
     public String setPlaceholders(String s) {
-        // noinspection unchecked
-        return placeholders.setPlaceholders(s, (T) this);
+        return placeholders.setPlaceholders(s, this);
     }
 
     @Override
@@ -93,24 +109,34 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
         }
     }
 
-    public abstract Command<T> command();
+    public Command<EventContext> command() {
+        return command;
+    }
 
-    public abstract Logger getLogger();
+    public EventContext setCommand(Command<EventContext> command) {
+        this.command = command;
+        return this;
+    }
+
+    public Logger getLogger() {
+        return log;
+    }
 
     public EventTracer tracer() {
         return tracer;
     }
 
-    public EventTracer.TracerDepth enter(String name, String exit) {
-        return tracer().enter(name, exit);
+    public Messages messages() {
+        return messages;
     }
 
-    public void log(String s, Object... args) {
-        tracer().log(s, args);
+    public EventContext messages(Messages v) {
+        messages = v;
+        return this;
     }
 
-    public void log(String s) {
-        tracer().log(s);
+    public void setMessages(Messages messages) {
+        this.messages = messages;
     }
 
     public interface Scope extends AutoCloseable {
@@ -124,7 +150,7 @@ public abstract class EventContext<T extends EventContext<T>> implements Placeho
             PLACEHOLDERS = Placeholders.create();
         } else {
             // noinspection all
-            PLACEHOLDERS = Placeholders.<EventContext<?>>create()
+            PLACEHOLDERS = Placeholders.<EventContext>create()
                     .of("target", (papi, ctx) ->
                             PapiResolver.INSTANCE.setPlaceholders("%" + papi + "%", ctx.target))
                     .and(PapiResolver.INSTANCE.map(EventContext::source));

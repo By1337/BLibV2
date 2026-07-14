@@ -16,22 +16,22 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class WeightsHandler<C extends EventContext<C>> implements EventHandler<C> {
-    private final Double2ObjectMap<EventHandler<C>> handlers;
+public class WeightsHandler implements EventHandler {
+    private final Double2ObjectMap<EventHandler> handlers;
     private final double totalWeight;
 
-    public WeightsHandler(Map<Double,EventHandler<C>> handlers) {
+    public WeightsHandler(Map<Double,EventHandler> handlers) {
         this(new Double2ObjectOpenHashMap<>(handlers));
     }
 
-    public WeightsHandler(Double2ObjectMap<EventHandler<C>> handlers) {
+    public WeightsHandler(Double2ObjectMap<EventHandler> handlers) {
         this.handlers = handlers;
         totalWeight = handlers.keySet().doubleStream().sum();
     }
 
 
     @Override
-    public boolean handle(C ctx) {
+    public boolean handle(EventContext ctx) {
         var tracer = ctx.tracer();
         try (var enter = tracer.enter("weights {", "}")) {
             double randomValue = ThreadLocalRandom.current().nextDouble() * totalWeight;
@@ -52,7 +52,7 @@ public class WeightsHandler<C extends EventContext<C>> implements EventHandler<C
         throw new IllegalStateException("No items to select from.");
     }
 
-    public static <C extends EventContext<C>> YamlDecoder<WeightsHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+    public static YamlDecoder<WeightsHandler> decoder(YamlDecoder<EventHandler> codec) {
         return YamlDecoder.mapOf(YamlDecoder.STRING
                         .flatMap((ctx,s) -> YamlDecoder.DOUBLE.decode(ctx, YamlValue.wrap(s.replace(",", ".")))),
                         codec)

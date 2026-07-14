@@ -69,32 +69,13 @@ class HandlerCodecBuilderTest {
 
 
     private static AtomicReference<List<String>> response = new AtomicReference<>(new ArrayList<>());
-    private static final Command<TestContext> command = new Command<TestContext>("root")
-            .sub(new Command<TestContext>("[response]")
+    private static final Command<EventContext> command = new Command<EventContext>("root")
+            .sub(new Command<EventContext>("[response]")
                     .argument(new ArgumentStrings<>("value"))
                     .executor((v, args) -> {
                         response.get().add((String) args.get("value"));
                     })
             );
-    private static class TestContext extends EventContext<TestContext> {
-        public TestContext() {
-            super(true);
-        }
-        @Override
-        public Command<TestContext> command() {
-            return command;
-        }
-
-        @Override
-        public Logger getLogger() {
-            return log;
-        }
-
-        @Override
-        public String setPlaceholders(String s) {
-            return "";
-        }
-    }
     
     @Test
     void run(){
@@ -103,9 +84,9 @@ class HandlerCodecBuilderTest {
                   if: '100 == 100'
                   do: '[response] 1'
                   else: '[response] 2'"""));
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
         assertEquals(List.of("1"), response.get());
     }
     @Test
@@ -116,9 +97,9 @@ class HandlerCodecBuilderTest {
                     do: '[response] 1'
                   - if: '99 == 99'
                     do: '[response] 2'"""));
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
         assertEquals(List.of("1", "2"), response.get());
     }
 
@@ -131,9 +112,9 @@ class HandlerCodecBuilderTest {
             else: '[response] fail'
     """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("fail"), response.get());
     }
@@ -148,9 +129,9 @@ class HandlerCodecBuilderTest {
               - '[response] b'
     """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("a", "b"), response.get());
     }
@@ -165,9 +146,9 @@ class HandlerCodecBuilderTest {
               do: '[response] nested'
     """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("nested"), response.get());
     }
@@ -181,9 +162,9 @@ class HandlerCodecBuilderTest {
                       if: '2 == 3'
                       do: '[response] nested'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of(), response.get());
     }
@@ -195,9 +176,9 @@ class HandlerCodecBuilderTest {
           - do: '[response] always'
     """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("always"), response.get());
     }
@@ -213,9 +194,9 @@ class HandlerCodecBuilderTest {
                         do: '[response] b'
                       - do: '[response] c'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("b"), response.get());
     }
@@ -231,9 +212,9 @@ class HandlerCodecBuilderTest {
                         do: '[response] b'
                       - do: '[response] fallback'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("fallback"), response.get());
     }
@@ -248,9 +229,9 @@ class HandlerCodecBuilderTest {
                       - if: '1 == 1'
                         do: '[response] second'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("first"), response.get());
     }
@@ -264,9 +245,9 @@ class HandlerCodecBuilderTest {
           - do: '[response] 3'
     """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("1", "2", "3"), response.get());
     }
@@ -278,9 +259,9 @@ class HandlerCodecBuilderTest {
                   - if: '1 == 2'
                     do: '[response] fail'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of(), response.get());
     }
@@ -296,9 +277,9 @@ class HandlerCodecBuilderTest {
                           - '[response] b'
                 """));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handle(new TestContext());
+        e.handle(new EventContext(false).setCommand(command));
 
         assertEquals(List.of("a", "b"), response.get());
     }
@@ -322,10 +303,10 @@ class HandlerCodecBuilderTest {
                       value1: '123'
                       value2: '321'"""));
 
-        EventHandler<TestContext> e = decodeTest(map.get("test"));
+        EventHandler e = decodeTest(map.get("test"));
         response.get().clear();
-        e.handleAndClose(new TestContext());
-        e.handleAndClose(new TestContext());
+        e.handleAndClose(new EventContext(false).setCommand(command));
+        e.handleAndClose(new EventContext(false).setCommand(command));
 
        // assertEquals(List.of("fallback"), response.get());
     }
@@ -336,12 +317,12 @@ class HandlerCodecBuilderTest {
             .setPrettyPrinting()
             .create();
 
-    private static <T extends EventContext<T>> EventHandler<T> decodeTest(YamlValue v) {
-        DataResult<EventHandler<T>> res = EventHandler.<T>decoder().decode(v);
+    private static EventHandler decodeTest(YamlValue v) {
+        DataResult<EventHandler> res = EventHandler.decoder().decode(v);
         if (res.hasError()) {
             System.out.println(res.error());
         }
-        EventHandler<T> t = res.result();
+        EventHandler t = res.result();
         if (t == null){
             res.getOrThrow();
         }

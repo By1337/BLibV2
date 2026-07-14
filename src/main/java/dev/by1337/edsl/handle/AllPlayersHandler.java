@@ -11,15 +11,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class AllPlayersHandler<C extends EventContext<C>> implements EventHandler<C> {
-    private final EventHandler<C> handler;
+public class AllPlayersHandler implements EventHandler {
+    private final EventHandler handler;
 
-    public AllPlayersHandler(EventHandler<C> handler) {
+    public AllPlayersHandler(EventHandler handler) {
         this.handler = handler;
     }
 
     @Override
-    public boolean handle(C ctx) {
+    public boolean handle(EventContext ctx) {
         boolean state = true;
         try (var enter = ctx.tracer().enter("all_players [", "] -> %s")) {
             enter.result(true);
@@ -40,7 +40,7 @@ public class AllPlayersHandler<C extends EventContext<C>> implements EventHandle
         return state;
     }
 
-    public static <C extends EventContext<C>> YamlDecoder<AllPlayersHandler<C>> decoder(YamlDecoder<EventHandler<C>> codec) {
+    public static YamlDecoder<AllPlayersHandler> decoder(YamlDecoder<EventHandler> codec) {
         return codec.map(AllPlayersHandler::new);
     }
 }
