@@ -1,4 +1,4 @@
-package dev.by1337.edsl.codec;
+package dev.by1337.edsl.decoder;
 
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.command.args.ArgumentParamsMap;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class EventHandlerCodec implements YamlDecoder<EventHandler> {
+public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
 
     private final YamlDecoder<Map<String, YamlValue>> S2OBJET_MAP = YamlDecoder.mapOf(YamlDecoder.STRING, YamlDecoder.YAML_VALUE);
     private final YamlDecoder<AllPlayersHandler> allPlayersCodec = AllPlayersHandler.decoder(this);
@@ -99,7 +99,7 @@ public class EventHandlerCodec implements YamlDecoder<EventHandler> {
         return DataResult.success(new CommandHandler(input));
     }
 
-    public EventHandlerCodec commandRewriter(Function<String, String> commandRewriter) {
+    public EventHandlerDecoder commandRewriter(Function<String, String> commandRewriter) {
         this.commandRewriter = commandRewriter;
         return this;
     }

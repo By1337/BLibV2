@@ -53,7 +53,7 @@ public class Messages {
             if (!pl.hasResult()) return DataResult.error("Has no plugin in context!");
             var plugin = pl.getOrThrow();
             var file = ResourceUtil.saveIfNotExist(fileName, plugin);
-            var files = Util.loadAll(file);
+            var files = YamlUtil.loadAll(file);
 
             DataResultBuilder result = new DataResultBuilder();
 

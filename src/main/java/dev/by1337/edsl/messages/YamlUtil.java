@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ApiStatus.Internal
-public class Util {
+public class YamlUtil {
 
     public static List<YamlMap> loadAll(File file){
         List<YamlMap> out = new ArrayList<>();

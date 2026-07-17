@@ -1,12 +1,12 @@
 package dev.by1337.edsl;
 
-import dev.by1337.edsl.codec.EventHandlerCodec;
+import dev.by1337.edsl.decoder.EventHandlerDecoder;
 import dev.by1337.edsl.context.EventContext;
 
 @FunctionalInterface
 public interface EventHandler {
-    static EventHandlerCodec decoder() {
-        return new EventHandlerCodec();
+    static EventHandlerDecoder decoder() {
+        return new EventHandlerDecoder();
     }
 
     boolean handle(EventContext ctx);

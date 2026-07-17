@@ -13,8 +13,13 @@ public record PermissionRequirement(String input) implements CheckHandler {
     public boolean handle(EventContext ctx) {
         String s = ctx.setPlaceholders(input);
         var v = ctx.target();
-        if (v == null) return false;
-        return v.hasPermission(s);
+        if (v == null) {
+            ctx.tracer().log("if '%s' -> false (has no player)", input);
+            return false;
+        }
+        var res =  v.hasPermission(s);
+        ctx.tracer().log("if '%s' -> %s", input, res);
+        return res;
     }
 
     public CheckHandler invert() {

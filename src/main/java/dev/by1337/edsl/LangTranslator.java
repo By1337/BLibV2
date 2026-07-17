@@ -3,7 +3,7 @@ package dev.by1337.edsl;
 import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.core.util.text.MessageFormatter;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
-import dev.by1337.edsl.messages.Util;
+import dev.by1337.edsl.messages.YamlUtil;
 import dev.by1337.edsl.util.ByLocaleSelector;
 import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.codec.DataResult;
@@ -50,7 +50,7 @@ public class LangTranslator implements Translator {
             var plugin = pl.getOrThrow();
             var file = ResourceUtil.saveIfNotExist(fileName, plugin);
             //bukkit разворачивает ключи с '.'
-            YamlMap yaml = Util.replaceAndLoad(file, ".", MAGIC_KEY).deepCopy();
+            YamlMap yaml = YamlUtil.replaceAndLoad(file, ".", MAGIC_KEY).deepCopy();
             yaml.deepReplace(s -> s.replace(MAGIC_KEY, "."));
             return RAW_LANG.decode(ctx, yaml.get()).flatMap(raw -> {
                 Map<Locale, Map<String, Object>> lang = new HashMap<>();
@@ -89,15 +89,15 @@ public class LangTranslator implements Translator {
         if (map == null) return null;
         Object result = map.get(component.key());
         if (result == null) return null;
-        if (result instanceof Component c) return c;
+        if (result instanceof Component c) return likeA(component, c);
         Component c = MiniMessage.deserialize(MessageFormatter.apply(String.valueOf(result), toArr(component.arguments())));
         return likeA(component, c);
     }
 
-    private static Component likeA(TranslatableComponent v, Component v2){
+    private static Component likeA(TranslatableComponent v, Component v2) {
         return v2
                 .style(b -> b.merge(v.style()))
-                .children(v.children());
+                .append(v.children());
     }
 
     private static Object[] toArr(List<TranslationArgument> arguments) {
