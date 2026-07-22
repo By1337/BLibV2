@@ -7,6 +7,8 @@ import dev.by1337.core.util.text.FontWidth;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -17,6 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.function.Function;
 
 public class MiniMessage {
@@ -28,19 +31,22 @@ public class MiniMessage {
     private static final int OFF_TITLE_WIDTH = 168;
 
     public static Component deserialize(String text) {
+        return deserialize(text, null);
+    }
+    public static Component deserialize(String text, @Nullable Locale locale) {
         if (text.contains("<off_title>")) {
             var arr = text.split("<off_title>");
-            Component first = deserialize(arr[0]);
+            Component first = deserialize(arr[0], locale);
             String second = arr[1];
             int appendPixels = OFF_TITLE_WIDTH - FontWidth.getPixels(first);
             return Component.empty()
                     .append(first)
                     .append(createWidth(appendPixels))
-                    .append(deserialize0(second));
+                    .append(deserialize0(second, locale));
         } else if (text.contains("<title_center>")) {
             var arr = text.split("<title_center>");
-            Component first = deserialize(arr[0]);
-            Component second = deserialize0(arr[1]);
+            Component first = deserialize(arr[0], locale);
+            Component second = deserialize0(arr[1], locale);
             int firstWidth = FontWidth.getPixels(first);
             int secondWidth = FontWidth.getPixels(second);
 
@@ -57,7 +63,7 @@ public class MiniMessage {
                 var res = Component.empty();
                 for (int i = 0; i < arr.length; i++) {
                     var s = arr[i];
-                    res = res.append(deserialize(s));
+                    res = res.append(deserialize(s, locale));
                     if (i != arr.length - 1) {
                         res = res.append(br);
                     }
@@ -65,8 +71,8 @@ public class MiniMessage {
                 return res;
             }
             var arr = text.split("<center>");
-            Component first = deserialize(arr[0]);
-            Component second = deserialize0(arr[1]);
+            Component first = deserialize(arr[0], locale);
+            Component second = deserialize0(arr[1], locale);
             int firstWidth = FontWidth.getPixels(first);
             int secondWidth = FontWidth.getPixels(second);
 
@@ -79,12 +85,16 @@ public class MiniMessage {
                     .append(second);
 
         } else {
-            return deserialize0(text);
+            return deserialize0(text, locale);
         }
     }
 
-    private static Component deserialize0(String text) {
-        return MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+    private static Component deserialize0(String text, @Nullable Locale locale) {
+        var c =  MINI_MESSAGE.apply(Legacy2MiniMessage.convert(text));
+        if (locale != null){
+            return GlobalTranslator.render(c, locale);
+        }
+        return c;
     }
 
     private static Component createWidth(int pixels) {

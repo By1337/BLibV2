@@ -49,4 +49,12 @@ public class Pair<L, R> implements Map.Entry<L, R> {
     public R setValue(R value) {
         return right = value;
     }
+
+    @Override
+    public String toString() {
+        return "Pair{" +
+                "left=" + left +
+                ", right=" + right +
+                '}';
+    }
 }
