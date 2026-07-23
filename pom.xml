@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.edsl</groupId>
     <artifactId>EventDSL</artifactId>
-    <version>1.5</version>
+    <version>1.5.1</version>
 
     <properties>
         <java.version>16</java.version>
@@ -81,15 +81,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-api</artifactId>
-            <version>5.2.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.destroystokyo.paper</groupId>
+            <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

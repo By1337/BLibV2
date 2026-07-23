@@ -9,21 +9,16 @@ import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.codec.DataResult;
 import dev.by1337.yaml.decoder.YamlDecoder;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.TranslationArgument;
+import net.kyori.adventure.text.*;
 import net.kyori.adventure.translation.Translator;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Contract;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class LangTranslator implements Translator {
     private final ByLocaleSelector<Map<String, Object>> lang;
@@ -95,10 +90,20 @@ public class LangTranslator implements Translator {
     }
 
     private static Component likeA(TranslatableComponent v, Component v2) {
-        return v2
-                .style(b -> b.merge(v.style()))
-                .append(v.children());
+        return append(v2.style(b -> b.merge(v.style())), v.children());
     }
+
+    @Contract(pure = true)
+    private static Component append(Component base, final List<? extends ComponentLike> components) {
+        if (components.isEmpty()) return base;
+        if (base.children().isEmpty()) return base.children(components);
+
+        final List<ComponentLike> newChildren = new ArrayList<>(components.size() + base.children().size());
+        newChildren.addAll(base.children());
+        newChildren.addAll(components);
+        return base.children(newChildren);
+    }
+
 
     private static Object[] toArr(List<TranslationArgument> arguments) {
         if (arguments.isEmpty()) return new Object[0];
