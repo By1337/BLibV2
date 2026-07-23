@@ -302,7 +302,7 @@
         <dependency>
             <groupId>dev.by1337.cmd</groupId>
             <artifactId>BCmd</artifactId>
-            <version>1.3</version>
+            <version>1.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
