@@ -31,13 +31,13 @@ public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
     public DataResult<? extends EventHandler> decodeCommand(DecodeContext ctx, String cmd, YamlValue value) {
         try (var ignored = ctx.fromKey(cmd)) {
             if (cmd.equals("all_players")) {
-                return allPlayersCodec.decode(value);
+                return allPlayersCodec.decode(ctx, value);
             } else if (cmd.startsWith("nearby-")) {
-                return nearbyCodec.decode(value);
+                return nearbyCodec.decode(ctx, value);
             } else if (cmd.equals("weights")) {
-                return weightsCodec.decode(value);
+                return weightsCodec.decode(ctx, value);
             } else if (cmd.equals("oneOf")) {
-                return oneOfCodec.decode(value);
+                return oneOfCodec.decode(ctx, value);
             }
             if (value.isMap()) {
                 return YamlDecoder.STRING_TO_STRING.decode(ctx, value).flatMap(params -> {
@@ -53,7 +53,7 @@ public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
                     return decodePrimitiveCommand(buffer.toString());
                 });
             }
-            return MULTI_LINE_STRING.decode(value).mapValue(s -> {
+            return MULTI_LINE_STRING.decode(ctx, value).mapValue(s -> {
                 if (s.isBlank()) return "[" + cmd + "]";
                 return "[" + cmd + "] " + s.replace("\n", "<br><reset>");
             }).flatMap(this::decodePrimitiveCommand);
