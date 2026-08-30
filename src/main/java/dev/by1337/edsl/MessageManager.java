@@ -5,12 +5,15 @@ import dev.by1337.edsl.command.DefaultEventCommands;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.messages.Messages;
 import dev.by1337.plc.PlaceholderResolver;
+import dev.by1337.yaml.YamlValue;
 import dev.by1337.yaml.decoder.RecordYamlDecoder;
 import dev.by1337.yaml.decoder.YamlDecoder;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.Translator;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 public class MessageManager {
     private final @Nullable Messages messages;
@@ -33,6 +36,10 @@ public class MessageManager {
         }
     }
 
+    public static YamlDecoder<MessageManager> decoder() {
+        return decoder("messages.yml", "lang.yml");
+    }
+
     public static YamlDecoder<MessageManager> decoder(@Nullable String messagesFile) {
         return decoder(messagesFile, null);
     }
@@ -42,7 +49,7 @@ public class MessageManager {
                 MessageManager::new,
                 Messages.decoder(messagesFile).fieldOf(),
                 LangTranslator.decoder(langFile).fieldOf()
-        );
+        ).preDecode(v -> YamlValue.wrap(Map.of()));
     }
 
     public void call(String key, Player player, PlaceholderResolver<EventContext> plc) {

@@ -3,6 +3,7 @@ package dev.by1337.edsl;
 import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.core.util.text.MessageFormatter;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
+import dev.by1337.edsl.messages.Messages;
 import dev.by1337.edsl.messages.YamlUtil;
 import dev.by1337.edsl.util.ByLocaleSelector;
 import dev.by1337.plc.PapiResolver;
@@ -40,12 +41,13 @@ public class LangTranslator implements Translator {
     private static final String MAGIC_KEY = "тут_была_точка_uwu";
 
     public static YamlDecoder<LangTranslator> decoder(String fileName) {
-        if (fileName == null) return (c, v) -> DataResult.success(null);
+        if (fileName == null) return (c, v) -> DataResult.success((LangTranslator)null);
         return (ctx, ignored) -> {
             var pl = ctx.get(Plugin.class);
             if (!pl.hasResult()) return DataResult.error("Has no plugin in context!");
             var plugin = pl.getOrThrow();
-            var file = ResourceUtil.saveIfNotExist(fileName, plugin);
+            var file = ResourceUtil.saveOptionalIfNotExist(fileName, plugin);
+            if (file == null) return DataResult.success((LangTranslator)null);
             //bukkit разворачивает ключи с '.'
             YamlMap yaml = YamlUtil.replaceAndLoad(file, ".", MAGIC_KEY).deepCopy();
             yaml.deepReplace(s -> s.replace(MAGIC_KEY, "."));

@@ -2,6 +2,7 @@ package dev.by1337.edsl.messages;
 
 import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.edsl.EventHandler;
+import dev.by1337.edsl.LangTranslator;
 import dev.by1337.edsl.Themes;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlMap;
@@ -47,12 +48,13 @@ public class Messages {
     }
 
     public static YamlDecoder<Messages> decoder(String fileName) {
-        if (fileName == null) return (c, v) -> DataResult.success(null);
+        if (fileName == null) return (c, v) -> DataResult.success((Messages)null);
         return (ctx, ignored) -> {
             var pl = ctx.get(Plugin.class);
             if (!pl.hasResult()) return DataResult.error("Has no plugin in context!");
             var plugin = pl.getOrThrow();
-            var file = ResourceUtil.saveIfNotExist(fileName, plugin);
+            var file = ResourceUtil.saveOptionalIfNotExist(fileName, plugin);
+            if (file == null) return DataResult.success((Messages)null);
             var files = YamlUtil.loadAll(file);
 
             DataResultBuilder result = new DataResultBuilder();
