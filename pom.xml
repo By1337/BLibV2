@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.core</groupId>
     <artifactId>BLibV2</artifactId>
-    <version>1.7.9</version>
+    <version>1.8.0</version>
 
     <properties>
         <java.version>16</java.version>
@@ -199,6 +199,13 @@
                                     <version>1.5+26.2</version>
                                     <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
                                     <destFileName>bridge+26.2.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>dev.by1337.core.nms</groupId>
+                                    <artifactId>BLibNms</artifactId>
+                                    <version>1.5+26.3</version>
+                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
+                                    <destFileName>bridge+26.3.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
