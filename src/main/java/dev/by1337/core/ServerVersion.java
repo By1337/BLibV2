@@ -49,11 +49,12 @@ public final class ServerVersion {
     public static final int V26_1_1 = toInt("26.1.1");
     public static final int V26_1_2 = toInt("26.1.2");
     public static final int V26_2 = toInt("26.2");
+    public static final int V26_3 = toInt("26.3");
 
     public static class LastKnown {
-        public static final String ID = "26.2";
-        public static final int VERSION = V26_2;
-        public static final int PROTOCOL = Protocol.V26_2;
+        public static final String ID = "26.3";
+        public static final int VERSION = V26_3;
+        public static final int PROTOCOL = Protocol.V26_3;
     }
 
     public static class Protocol {
@@ -115,6 +116,8 @@ public final class ServerVersion {
         public static final int V26_1_2 = V775;
         public static final int V776 = 776;
         public static final int V26_2 = V776;
+        public static final int V777 = 777;
+        public static final int V26_3 = V777;
     }
 
     private static int toInt(String id) {
@@ -550,5 +553,17 @@ public final class ServerVersion {
 
     public static boolean is26_2orOlder() {
         return CURRENT <= V26_2;
+    }
+
+    public static boolean is26_3() {
+        return CURRENT == V26_3;
+    }
+
+    public static boolean is26_3orNewer() {
+        return CURRENT >= V26_3;
+    }
+
+    public static boolean is26_3orOlder() {
+        return CURRENT <= V26_3;
     }
 }

@@ -50,17 +50,17 @@ public class BLibBridge {
     private static void loadBridge(Plugin plugin) {
         File outFolder = new File(plugin.getDataFolder(), ".bridges");
         outFolder.mkdirs();
-        File file = new File(outFolder, "BLib-bridge-1.9.7.jar");
+        File file = new File(outFolder, "BLib-bridge-1.9.8.jar");
         if (!file.exists()) {
-            try (var in = getInputStream("bridges/BLib-bridge-1.9.7.jar")) {
+            try (var in = getInputStream("bridges/BLib-bridge-1.9.8.jar")) {
                 if (in == null) {
-                    throw new FileNotFoundException("Unable to find bridges/BLib-bridge-1.9.7.jar");
+                    throw new FileNotFoundException("Unable to find bridges/BLib-bridge-1.9.8.jar");
                 }
                 try (var out = new FileOutputStream(file)) {
                     in.transferTo(out);
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load bridge BLib-bridge-1.9.7.jar", e);
+                throw new RuntimeException("Failed to load bridge BLib-bridge-1.9.8.jar", e);
             }
         }
         ClasspathUtil.addUrl(plugin, file.toPath());
