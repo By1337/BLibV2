@@ -1,0 +1,18 @@
+{
+  "use-locale": "auto-detect",
+  "default-locale": "ru_RU",
+  "messages": {
+    "unknown-player": {
+      "ru_RU": "'{}' - неизвестный игрок!",
+      "en_UK": "'{}' - unknown player!"
+    },
+    "unknown-constant": {
+      "ru_RU": "Неизвестный {}: {}, возможно вы имели в виду: {}",
+      "en_UK": "Unknown {}: {}, did you mean: {}"
+    },
+    "must-be-number": {
+      "ru_RU": "должно быть числом",
+      "en_UK": "must be a number"
+    }
+  }
+}

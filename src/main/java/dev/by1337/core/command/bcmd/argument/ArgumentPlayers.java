@@ -1,6 +1,8 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.lang.Lang;
+import dev.by1337.core.util.text.MessageFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -43,7 +45,7 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
                 }
             }
             if (pl == null)
-                throw new CommandMsgError("Unknown player: " + str);
+                throw new CommandMsgError(MessageFormatter.apply(Lang.getMessage("unknown-player"), str));
         }
         out.put(name, List.of(pl));
     }

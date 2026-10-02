@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.lang.Lang;
 import dev.by1337.core.util.math.FastExpressionParser;
 import org.bukkit.entity.Player;
 
@@ -25,7 +26,7 @@ public class ArgumentInt<C> extends Argument<C, Integer> {
         try {
             out.put(name, (int) FastExpressionParser.parse(str));
         } catch (FastExpressionParser.MathFormatException e) {
-            throw new CommandMsgError("must be a number");
+            throw new CommandMsgError(Lang.getMessage("must-be-number"));
         }
     }
 
@@ -49,7 +50,7 @@ public class ArgumentInt<C> extends Argument<C, Integer> {
             args.put(name, d);
             suggestions.suggest(Integer.toString(d));
         } catch (FastExpressionParser.MathFormatException e) {
-            throw new CommandMsgError("must be a number");
+            throw new CommandMsgError(Lang.getMessage("must-be-number"));
         }
     }
 
