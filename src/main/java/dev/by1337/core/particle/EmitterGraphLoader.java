@@ -32,7 +32,7 @@ public class EmitterGraphLoader implements AutoCloseable {
     private final Plugin plugin;
     private final File root;
     private final Map<String, BukkitRunnable> active = new HashMap<>();
-    private Map<String, EmitterGraph> graphs = Map.of();
+    private final Map<String, EmitterGraph> graphs = new HashMap<>();
     private int nextId;
 
     public EmitterGraphLoader(Plugin plugin) {
@@ -122,7 +122,8 @@ public class EmitterGraphLoader implements AutoCloseable {
                 plugin.getSLF4JLogger().warn("Failed to load particle graph {}", file, e);
             }
         }
-        graphs = Map.copyOf(loaded);
+        graphs.clear();
+        graphs.putAll(loaded);
         return graphs.size();
     }
 
