@@ -1,0 +1,60 @@
+__root__:
+  type: base:root
+  connections:
+    circle_1: "%2"
+    particle_3: "%7"
+    particle_2: "%7"
+    particle_4: "%7"
+  $web: '{"name":"Root","position":{"x":-128,"y":252},"autoName":true}'
+circle_1:
+  type: base:circle
+  radius: 2
+  points: 42
+  rotation: 0;0;0
+  dist: none
+  connections:
+    particle_1: ""
+  $web: '{"name":"Circle","position":{"x":380,"y":47},"autoName":true}'
+particle_1:
+  type: base:particle
+  particle: soul
+  count: 0
+  maxSpeed: 0.2
+  overrideLimiter: false
+  alwaysShow: false
+  dist: 0;1;0
+  $web: '{"name":"soul","position":{"x":704,"y":47},"autoName":true}'
+particle_2:
+  type: base:particle
+  particle: totem_of_undying
+  count: 25
+  maxSpeed: 0
+  overrideLimiter: false
+  alwaysShow: false
+  offsets: 0;10;0
+  dist: 10;5;10
+  $web: '{"name":"totem_of_undying","position":{"x":424,"y":210},"autoName":true}'
+particle_3:
+  type: base:particle
+  particle: firework
+  count: 25
+  maxSpeed: 0
+  overrideLimiter: false
+  alwaysShow: false
+  offsets: 0;10;0
+  dist: 10;5;10
+  $web: '{"name":"firework","position":{"x":415,"y":347},"autoName":true}'
+particle_4:
+  type: base:particle
+  particle: dust_color_transition
+  count: 25
+  maxSpeed: 0
+  overrideLimiter: false
+  alwaysShow: false
+  data:
+    rgbFrom: "#ff0000"
+    rgbTo: "#e1ff00"
+    size: 1
+  offsets: 0;10;0
+  dist: 10;5;10
+  $web: '{"name":"dust_color_transition","position":{"x":392,"y":471},"autoName":true}'

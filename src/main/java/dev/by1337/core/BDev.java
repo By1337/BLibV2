@@ -11,9 +11,11 @@ import dev.by1337.core.command.bcmd.argument.ArgumentPlayers;
 import dev.by1337.core.command.bcmd.argument.GlobalRegistryItem;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.legacy.BLibBridge;
+import dev.by1337.core.particle.EmitterGraphLoader;
 import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.particle.*;
 import dev.by1337.particle.particle.ParticleData;
+import dev.by1337.particle.particle.options.VibrationParticleOption;
 import dev.by1337.particle.util.Version;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOutboundHandler;
@@ -37,6 +39,7 @@ public class BDev extends JavaPlugin {
     public static Path HOME_DIR;
     private CommandWrapper commands;
     private ParticleRenderBootstrapper particles;
+    private EmitterGraphLoader emitterGraphLoader;
     private ThemesBotter themes;
 
     public BDev() {
@@ -59,13 +62,14 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        particles = new ParticleRenderBootstrapper("bdev-particles", this);
+        particles.enable();
+        emitterGraphLoader = new EmitterGraphLoader(this);
         commands = new CommandWrapper(create(), this);
         commands.setPermission("bdev.use");
         commands.register();
         BLibBridge.onEnable();
 
-        particles = new ParticleRenderBootstrapper("bdev-particles", this);
-        particles.enable();
         int ignored = ItemType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
         int ignored2 = BlockType.BARRIER.getProtocolId(Version.VERSION.protocolVersion()); //preload
         themes.onEnable();
@@ -73,6 +77,7 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        emitterGraphLoader.close();
         particles.disable();
         commands.unregister();
         BLibBridge.onDisable();
@@ -82,7 +87,13 @@ public class BDev extends JavaPlugin {
     private Command<CommandSender> create() {
         return new Command<CommandSender>("bdev")
                 .requires(new RequiresPermission<>("bdev.use"))
+                .sub(emitterGraphLoader.commands())
                 .sub(TestCommand.createTest("commands"))
+                .sub(new Command<CommandSender>("vibrationtest")
+                                .executor(sender -> sendTestVibration(sender, false))
+                                .sub(new Command<CommandSender>("block").executor(sender -> sendTestVibration(sender, false)))
+                                .sub(new Command<CommandSender>("entity").executor(sender -> sendTestVibration(sender, true)))
+                )
                 .sub(new Command<CommandSender>("test")
                         .requires(sender -> sender instanceof Player)
                         .executor((sender) -> {
@@ -92,22 +103,6 @@ public class BDev extends JavaPlugin {
                             new NbtBridge.TestImpl().run(player, BCore.getNbtBridge());
                             player.sendMessage("done");
                             player.sendMessage(Objects.toString(ChannelGetter.get(player)));
-                        })
-                )
-                .sub(new Command<CommandSender>("particles")
-                        .requires(sender -> sender instanceof Player)
-                        .executor((sender) -> {
-                            Player player = (Player) sender;
-                            var loc = player.getLocation();
-                            ParticleRender.render(
-                                    player,
-                                    PluginParticleRender.circle(
-                                            256, 10, ParticleData.of(ParticleType.SOUL_FIRE_FLAME)
-                                    ),
-                                    loc.getX(),
-                                    loc.getY(),
-                                    loc.getZ()
-                            );
                         })
                 )
                 .sub(new Command<CommandSender>("handlers")
@@ -206,5 +201,21 @@ public class BDev extends JavaPlugin {
                             s.sendMessage(sb.toString());
                         }))
                 ;
+    }
+    private void sendTestVibration(CommandSender sender, boolean entityDestination) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("This command requires a player.");
+            return;
+        }
+        var start = player.getEyeLocation();
+        var target = start.clone().add(start.getDirection().multiply(4));
+        var origin = new VibrationParticleOption.BlockPos(start.getBlockX(), start.getBlockY(), start.getBlockZ());
+        VibrationParticleOption option = entityDestination
+                ? VibrationParticleOption.toEntity(origin, player.getEntityId(), 0.0f, 30)
+                : VibrationParticleOption.toBlock(origin,
+                new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
+        ParticleRender.render(player, ParticleData.of(ParticleType.VIBRATION, option),
+                start.getX(), start.getY(), start.getZ());
+        sender.sendMessage("Vibration sent to " + (entityDestination ? "you" : "the block ahead") + ".");
     }
 }
