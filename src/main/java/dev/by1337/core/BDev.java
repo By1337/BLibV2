@@ -2,6 +2,7 @@ package dev.by1337.core;
 
 import dev.by1337.cmd.*;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
+import dev.by1337.core.bridge.location.LocationBar;
 import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.command.bcmd.CommandWrapper;
@@ -103,6 +104,17 @@ public class BDev extends JavaPlugin {
                             new NbtBridge.TestImpl().run(player, BCore.getNbtBridge());
                             player.sendMessage("done");
                             player.sendMessage(Objects.toString(ChannelGetter.get(player)));
+                        })
+                )
+                .sub(new Command<CommandSender>("locationBar")
+                        .requires(sender -> sender instanceof Player)
+                        .executor((sender) -> {
+                            if (BCore.locationBar == null) return;
+                            Player player = (Player) sender;
+                            var point = new LocationBar.Waypoint()
+                                    .setColor(0xff00ff)
+                                    .setPos(player.getLocation().add(0, 10, 10));
+                            BCore.locationBar.send(player, point);
                         })
                 )
                 .sub(new Command<CommandSender>("handlers")

@@ -3,6 +3,7 @@ package dev.by1337.core;
 import dev.by1337.core.bridge.command.BukkitCommandRegister;
 import dev.by1337.core.bridge.inventory.InventoryUtil;
 import dev.by1337.core.bridge.inventory.ItemStackSerializer;
+import dev.by1337.core.bridge.location.LocationBar;
 import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.entity.EntityWrapper;
@@ -14,6 +15,7 @@ public class BCore {
     static BukkitCommandRegister bukkitCommandRegister;
     static NbtBridge nbtBridge;
     static EntityWrapper.Maker entityWrapperMaker;
+    static LocationBar locationBar;
 
     public static BlockEntityUtil getBlockEntityUtil() {
         return blockEntityUtil;
@@ -37,5 +39,10 @@ public class BCore {
 
     public static EntityWrapper.Maker getEntityWrapperMaker() {
         return entityWrapperMaker;
+    }
+
+    // 1.21.6+
+    public static LocationBar locationBar() {
+        return locationBar;
     }
 }
