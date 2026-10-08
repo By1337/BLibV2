@@ -29,6 +29,8 @@ public class CommandHandler implements EventHandler {
         if (compiled != null && executor == lastExecutor) {
             try (var ignored = ctx.tracer().timing("run: %s", source)){
                 compiled.execute(ctx);
+            } catch (Exception e) {
+                log.error("Failed to run compiled command {}.", source, e);
             }
         } else {
             if (canBeCompiled) {

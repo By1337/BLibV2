@@ -16,6 +16,8 @@ import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DefaultEventCommands {
 
@@ -44,7 +46,7 @@ public class DefaultEventCommands {
                                 }
                             }
                         }))
-                .sub(new Command<T>("[broadcast]").alias("[bc]").executor(
+                .sub(new Command<T>("[broadcast]").aliases("[bc]", "[message_all]").executor(
                         new ArgumentComponents<>("msg"),
                         (ctx, msg) -> {
                             var c = orElseGet(msg, Component.empty());
@@ -73,7 +75,6 @@ public class DefaultEventCommands {
                 .sub(new Command<T>("[player]").executor(
                         new ArgumentStrings<>("msg"),
                         (ctx, msg) -> {
-
                             reqNotNull(msg, "Use: [player] <msg>");
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
@@ -92,15 +93,31 @@ public class DefaultEventCommands {
                                     orElseGet(pitch, 1D).floatValue()
                             );
                         }))
+                .sub(new Command<T>("[sound_all]").executor(
+                        new ArgumentSound<>("sound"),
+                        new ArgumentDouble<>("volume"),
+                        new ArgumentDouble<>("pitch"),
+                        (ctx, sound, volume, pitch) -> {
+                            reqNotNull(sound, "Use: [sound_all] <sound> <?volume> <pitch>");
+                            float v = orElseGet(volume, 1D).floatValue();
+                            float p = orElseGet(pitch, 1D).floatValue();
+                            Bukkit.getOnlinePlayers().forEach(pl -> pl.playSound(
+                                    pl.getLocation(), sound, v, p
+                            ));
+                        }))
                 .sub(new Command<T>("[action_bar]").executor(
                         new ArgumentComponents<>("msg"),
                         (ctx, msg) -> {
-
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
                             player.sendActionBar(orElseGet(msg, Component.empty()));
                         }))
-
+                .sub(new Command<T>("[action_bar_all]").executor(
+                        new ArgumentComponents<>("msg"),
+                        (ctx, msg) -> {
+                            var c = orElseGet(msg, Component.empty());
+                            Bukkit.getOnlinePlayers().forEach(pl -> pl.sendActionBar(c));
+                        }))
                 .sub(new Command<T>("[give_effect]").executor(
                         new ArgumentRegistry<>("effect", LegacyRegistryBridge.MOB_EFFECT),
                         new ArgumentInt<>("duration"),
@@ -137,6 +154,32 @@ public class DefaultEventCommands {
                                             Ticks.duration(fadeOut)
                                     )
                             ));
+                        }
+                ))
+                .sub(new Command<T>("[title_all]").executor(
+                        new ArgumentString<>("msg"),
+                        new ArgumentInt<>("fadeIn"),
+                        new ArgumentInt<>("stay"),
+                        new ArgumentInt<>("fadeOut"),
+                        (ctx, msg, fadeIn0, stay0, fadeOut0) -> {
+
+                            reqNotNull(msg, "Use [title_all] <\"Title\\nSubTitle\"> <?fadeIn> <?stay> <?fadeOut>");
+                            int fadeIn = orElseGet(fadeIn0, 10);
+                            int stay = orElseGet(stay0, 70);
+                            int fadeOut = orElseGet(fadeOut0, 20);
+                            String[] arr = msg.split("\\\\n", 2);
+                            final @NotNull Component title = MiniMessage.deserialize(arr[0]);
+                            final @NotNull Component subtitle = arr.length == 2 ? MiniMessage.deserialize(arr[1]) : Component.empty();
+                            final @Nullable Title.Times times = Title.Times.times(
+                                    Ticks.duration(fadeIn),
+                                    Ticks.duration(stay),
+                                    Ticks.duration(fadeOut)
+                            );
+                            Bukkit.getOnlinePlayers().forEach(pl -> pl.showTitle(Title.title(
+                                    title,
+                                    subtitle,
+                                    times
+                            )));
                         }
                 ))
                 .sub(new Command<T>("[cooldown]").executor(

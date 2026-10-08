@@ -104,7 +104,7 @@ public class EventContext implements PlaceholderApplier, AutoCloseable {
 
     @Override
     public void close() {
-        if (tracerLog != null) {
+        if (tracerLog != null && !tracerLog.isEmpty()) {
             getLogger().info("TRACER:\n{}", tracerLog);
         }
     }
