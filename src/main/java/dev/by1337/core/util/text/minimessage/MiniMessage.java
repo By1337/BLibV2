@@ -21,6 +21,8 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MiniMessage {
     private static final Function<String, Component> MINI_MESSAGE;
@@ -29,6 +31,8 @@ public class MiniMessage {
     private static final int CHAT_WIDTH = 320;
     private static final int TITLE_WIDTH = 162;
     private static final int OFF_TITLE_WIDTH = 168;
+    private static final Pattern CENTER_PATTERN =
+            Pattern.compile("<center(?::(\\d+))?>");
 
     public static Component deserialize(String text) {
         return deserialize(text, null);
@@ -58,35 +62,41 @@ public class MiniMessage {
                     .append(first)
                     .append(createWidth(Math.max(0, padding)))
                     .append(second);
-        } else if (text.contains("<center>")) {
+        } else {
+            Matcher matcher = CENTER_PATTERN.matcher(text);
+            if (!matcher.find()) {
+                return deserialize0(text, locale);
+            }
+
             if (text.contains("\n") || text.contains("<br>")) {
-                var arr = text.replace("<br>", "\n").split("\n");
+                var arr = text.replace("<br>", "\n").split("\n", -1);
                 var res = Component.empty();
                 for (int i = 0; i < arr.length; i++) {
-                    var s = arr[i];
-                    res = res.append(deserialize(s, locale));
+                    res = res.append(deserialize(arr[i], locale));
                     if (i != arr.length - 1) {
                         res = res.append(br);
                     }
                 }
                 return res;
             }
-            var arr = text.split("<center>");
-            Component first = deserialize(arr[0], locale);
-            Component second = deserialize0(arr[1], locale);
+
+            int width = matcher.group(1) == null
+                    ? CHAT_WIDTH
+                    : Integer.parseInt(matcher.group(1));
+
+            Component first = deserialize(text.substring(0, matcher.start()), locale);
+            Component second = deserialize0(text.substring(matcher.end()), locale);
+
             int firstWidth = FontWidth.getPixels(first);
             int secondWidth = FontWidth.getPixels(second);
 
-            int targetX = (CHAT_WIDTH - secondWidth) / 2;
+            int targetX = (width - secondWidth) / 2;
             int padding = targetX - firstWidth;
 
             return Component.empty()
                     .append(first)
                     .append(createWidth(Math.max(0, padding)))
                     .append(second);
-
-        } else {
-            return deserialize0(text, locale);
         }
     }
 
