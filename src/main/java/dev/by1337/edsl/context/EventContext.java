@@ -24,7 +24,7 @@ public class EventContext implements PlaceholderApplier, AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(EventContext.class);
     public final EventTracer tracer;
     private final @Nullable StringBuilder tracerLog;
-    private final PlaceholderResolver<EventContext> placeholders;
+    private PlaceholderResolver<EventContext> placeholders;
 
     private final @Nullable Player source;
     private @Nullable Player target;
