@@ -3,7 +3,7 @@ package dev.by1337.core.util.text.component;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 @Deprecated
 public class SourcedComponent implements SourcedComponentLike {
@@ -21,7 +21,7 @@ public class SourcedComponent implements SourcedComponentLike {
     }
 
     @Override
-    public @NonNull Component asComponent() {
+    public @NotNull Component asComponent() {
         return component;
     }
 }
