@@ -22,6 +22,17 @@ import java.util.List;
 import java.util.UUID;
 
 
+/**
+ * Standard base class for BDev Paper plugins.
+ * {@link #onLoad()} initializes {@link #messages} from {@code messages.yml} and
+ * {@code lang.yml}, copying bundled defaults when needed. Subclasses overriding
+ * {@code onLoad} must call {@code super.onLoad()} before using messages.
+ * <p>
+ * Use {@link #registerCommand(Command, String)} for owned commands and
+ * {@link #addCloseHook(Closeable)} for owned resources. {@link #onDisable()}
+ * unregisters commands and closes resources in reverse registration order;
+ * subclasses overriding shutdown must call {@code super.onDisable()}.
+ */
 public class BasePlugin extends JavaPlugin {
     protected MessageManager messages;
     protected final Logger log;
