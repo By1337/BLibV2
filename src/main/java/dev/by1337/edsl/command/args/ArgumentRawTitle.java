@@ -2,6 +2,7 @@ package dev.by1337.edsl.command.args;
 
 import dev.by1337.cmd.*;
 import dev.by1337.edsl.context.EventContext;
+import dev.by1337.plc.PlaceholderApplier;
 import dev.by1337.core.util.text.minimessage.BMM;
 import dev.by1337.edsl.text.RawTextComponentLike;
 import net.kyori.adventure.text.Component;
@@ -37,6 +38,10 @@ public final class ArgumentRawTitle<C> extends Argument<C, ArgumentRawTitle.Text
         }
 
         public Title render(Player player, EventContext context, Title.Times times) {
+            return render(player, (PlaceholderApplier) context, times);
+        }
+
+        public Title render(Player player, PlaceholderApplier context, Title.Times times) {
             var formatted = text.asFormated(player);
             Parsed parts;
             if (formatted.component() == null) {

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.edsl</groupId>
     <artifactId>EventDSL</artifactId>
-    <version>1.7</version>
+    <version>1.8.4</version>
 
     <properties>
         <java.version>16</java.version>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>dev.by1337.core</groupId>
             <artifactId>BLibV2</artifactId>
-            <version>1.9</version>
+            <version>1.10.5</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

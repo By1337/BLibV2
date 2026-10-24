@@ -4,6 +4,7 @@ import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.core.util.text.MessageFormatter;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
 import dev.by1337.edsl.text.RawTextComponentLike;
+import dev.by1337.edsl.text.LocalizedText;
 import dev.by1337.edsl.messages.YamlUtil;
 import dev.by1337.edsl.util.ByLocaleSelector;
 import dev.by1337.plc.PapiResolver;
@@ -25,13 +26,18 @@ import java.util.*;
 
 public class LangTranslator implements Translator {
     private final ThemeSelector<ByLocaleSelector<Map<String, Object>>> lang;
-    private final Plugin plugin;
     private final Key key;
+    private volatile Map<String, Map<String, ComponentLike>> registeredTranslations = Map.of();
+    private static final LangTranslator REGISTRY = new LangTranslator(
+            new ThemeSelector<>(new ByLocaleSelector<>(Map.of())), Key.key("eventdsl", "registry"));
 
     public LangTranslator(ThemeSelector<ByLocaleSelector<Map<String, Object>>> lang, Plugin plugin) {
+        this(lang, new NamespacedKey(plugin, "lang"));
+    }
+
+    private LangTranslator(ThemeSelector<ByLocaleSelector<Map<String, Object>>> lang, Key key) {
         this.lang = lang;
-        this.plugin = plugin;
-        key = new NamespacedKey(plugin, "lang");
+        this.key = key;
     }
 
     private static final YamlDecoder<Map<String, Map<String, String>>> RAW_LANG = YamlDecoder.mapOf(
@@ -57,7 +63,7 @@ public class LangTranslator implements Translator {
                 for (var entry : raw.entrySet()) {
                     Map<String, Object> values = new HashMap<>();
                     entry.getValue().forEach((name, value) -> {
-                        String key = (plugin.getName() + "." + name).toLowerCase(Locale.ROOT);
+                        String key = (plugin.getName() + "." + name.replace(MAGIC_KEY, ".")).toLowerCase(Locale.ROOT);
                         values.put(key, new RawTextComponentLike(value));
                     });
                     lang.put(Translator.parseLocale(entry.getKey()), values);
@@ -77,17 +83,54 @@ public class LangTranslator implements Translator {
         return null;
     }
 
+    /**
+     * Atomically replaces runtime translations under an owned prefix (without a trailing dot).
+     * Keys must be fully qualified. Missing keys under a registered prefix render empty,
+     * so references stored in older items survive removed or shortened lore.
+     * Values remain unresolved until rendering; themes and player placeholders stay dynamic.
+     */
+    public static void registerTranslations(String prefix, Map<String, ? extends ComponentLike> translations) {
+        REGISTRY.replaceTranslations(prefix, translations);
+        net.kyori.adventure.translation.GlobalTranslator.translator().addSource(REGISTRY);
+    }
+
+    private synchronized void replaceTranslations(String prefix, Map<String, ? extends ComponentLike> translations) {
+        Objects.requireNonNull(prefix);
+        if (prefix.isEmpty() || prefix.endsWith(".")) throw new IllegalArgumentException("Invalid translation prefix: " + prefix);
+        String start = prefix + ".";
+        Map<String, ComponentLike> values = new HashMap<>();
+        translations.forEach((name, value) -> {
+            if (!name.startsWith(start)) throw new IllegalArgumentException("Translation key outside " + prefix + ": " + name);
+            values.put(name, Objects.requireNonNull(value));
+        });
+        var updated = new HashMap<>(registeredTranslations);
+        updated.put(prefix, Map.copyOf(values));
+        registeredTranslations = Map.copyOf(updated);
+    }
+
     public @Nullable Component translate(final @NotNull TranslatableComponent component, final @NotNull Locale locale) {
         Player player = PlayerLocal.get();
-        var map = lang.select(player).select(locale);
-        if (map == null) return null;
-        Object result = map.get(component.key());
-        if (result == null) return null;
+        Object result = null;
+        boolean registered = false;
+        var snapshot = registeredTranslations;
+        for (var entry : snapshot.entrySet()) {
+            if (component.key().startsWith(entry.getKey() + ".")) {
+                registered = true;
+                result = entry.getValue().get(component.key());
+                if (result != null) break;
+            }
+        }
+        if (result == null) {
+            var map = lang.select(player).select(locale);
+            if (map != null) result = map.get(component.key());
+        }
+        if (result == null) return registered ? likeA(component, Component.empty()) : null;
+        while (result instanceof LocalizedText localized) result = localized.select(locale);
         if (result instanceof RawTextComponentLike raw) {
             return likeA(component, raw.asComponent(player, text -> PapiResolver.INSTANCE.setPlaceholders(
                     MessageFormatter.apply(text, toArr(component.arguments())), player)));
         }
-        if (result instanceof Component c) return likeA(component, c);
+        if (result instanceof ComponentLike c) return likeA(component, c.asComponent());
         Component c = MiniMessage.deserialize(
                 PapiResolver.INSTANCE.setPlaceholders(MessageFormatter.apply(String.valueOf(result), toArr(component.arguments())), player)
         );

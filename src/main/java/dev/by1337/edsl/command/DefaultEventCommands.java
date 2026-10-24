@@ -1,6 +1,7 @@
 package dev.by1337.edsl.command;
 
 import dev.by1337.cmd.Command;
+import dev.by1337.core.util.text.AdventureAdapter;
 import dev.by1337.cmd.CommandMsgError;
 import dev.by1337.cmd.argument.ArgumentString;
 import dev.by1337.cmd.argument.ArgumentStrings;
@@ -25,18 +26,29 @@ import org.jetbrains.annotations.Nullable;
 
 public class DefaultEventCommands {
     private static final Set<String> DEFERRED_TEXT_COMMANDS = Set.of(
-            "[message]", "[broadcast]", "[bc]", "[message_all]",
+            "[message]", "[messages]", "[broadcast]", "[bc]", "[message_all]",
             "[action_bar]", "[action_bar_all]", "[title]", "[title_all]");
 
     /** Only these built-in commands resolve their own placeholders at execution time. */
     public static boolean defersPlaceholders(String source) {
         int end = source.indexOf(' ');
-        return DEFERRED_TEXT_COMMANDS.contains(end < 0 ? source : source.substring(0, end));
+        return DEFERRED_TEXT_COMMANDS.contains(end < 0 ? source : source.substring(0, end))
+                || LocalizedTextCommands.defersPlaceholders(source);
     }
 
 
     public static <T extends EventContext> Command<T> createCommands() {
         return new Command<T>("root")
+                .and(LocalizedTextCommands.<T>create(
+                        EventContext::target,
+                        ctx -> ctx,
+                        (ctx, output) -> {
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                try (var ignored = ctx.target(player)) {
+                                    output.accept(player);
+                                }
+                            }
+                        }))
                 .sub(new Command<T>("[console]").executor(
                         new ArgumentStrings<>("cmd"),
                         (ctx, cmd) -> {
@@ -70,7 +82,7 @@ public class DefaultEventCommands {
                             }
                         }))
 
-                .sub(new Command<T>("[message]").executor(
+                .sub(new Command<T>("[message]").aliases("[messages]").executor(
                         new ArgumentRawText<>("msg"),
                         (ctx, msg) -> {
                             var player = ctx.target();
@@ -162,7 +174,7 @@ public class DefaultEventCommands {
                             int fadeOut = duration(fadeOut0, 20, ctx);
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
-                            player.showTitle(msg.render(player, ctx, Title.Times.times(
+                            player.showTitle(msg.render(player, ctx, AdventureAdapter.titleTimes(
                                     Ticks.duration(fadeIn), Ticks.duration(stay), Ticks.duration(fadeOut))));
                         }
                 ))
@@ -177,7 +189,7 @@ public class DefaultEventCommands {
                             int fadeIn = duration(fadeIn0, 10, ctx);
                             int stay = duration(stay0, 70, ctx);
                             int fadeOut = duration(fadeOut0, 20, ctx);
-                            Title.Times times = Title.Times.times(
+                            Title.Times times = AdventureAdapter.titleTimes(
                                     Ticks.duration(fadeIn), Ticks.duration(stay), Ticks.duration(fadeOut));
                             for (Player player : Bukkit.getOnlinePlayers()) {
                                 try (var ignored = ctx.target(player)) {

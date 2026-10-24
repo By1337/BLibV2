@@ -4,6 +4,7 @@ import dev.by1337.cmd.Command;
 import dev.by1337.cmd.CompiledCommand;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.command.DefaultEventCommands;
+import dev.by1337.edsl.command.LocalizedTextCommands;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +21,7 @@ public class CommandHandler implements EventHandler {
     private final boolean deferredPlaceholders;
 
     public CommandHandler(String source) {
+        source = LocalizedTextCommands.preprocess(source);
         this.source = source;
         hasPlaceholders = source.contains("%") || source.contains("{");
         deferredPlaceholders = DefaultEventCommands.defersPlaceholders(source);
