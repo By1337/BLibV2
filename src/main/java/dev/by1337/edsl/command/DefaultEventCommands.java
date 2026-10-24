@@ -6,8 +6,12 @@ import dev.by1337.cmd.argument.ArgumentString;
 import dev.by1337.cmd.argument.ArgumentStrings;
 import dev.by1337.core.bridge.registry.LegacyRegistryBridge;
 import dev.by1337.core.command.bcmd.argument.*;
-import dev.by1337.core.util.text.minimessage.MiniMessage;
 import dev.by1337.edsl.context.EventContext;
+import dev.by1337.edsl.command.args.ArgumentRawText;
+import dev.by1337.edsl.command.args.ArgumentRawTitle;
+import dev.by1337.edsl.text.RawTextComponentLike;
+
+import java.util.Set;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.util.Ticks;
@@ -20,6 +24,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultEventCommands {
+    private static final Set<String> DEFERRED_TEXT_COMMANDS = Set.of(
+            "[message]", "[broadcast]", "[bc]", "[message_all]",
+            "[action_bar]", "[action_bar_all]", "[title]", "[title_all]");
+
+    /** Only these built-in commands resolve their own placeholders at execution time. */
+    public static boolean defersPlaceholders(String source) {
+        int end = source.indexOf(' ');
+        return DEFERRED_TEXT_COMMANDS.contains(end < 0 ? source : source.substring(0, end));
+    }
+
 
     public static <T extends EventContext> Command<T> createCommands() {
         return new Command<T>("root")
@@ -47,20 +61,21 @@ public class DefaultEventCommands {
                             }
                         }))
                 .sub(new Command<T>("[broadcast]").aliases("[bc]", "[message_all]").executor(
-                        new ArgumentComponents<>("msg"),
+                        new ArgumentRawText<>("msg"),
                         (ctx, msg) -> {
-                            var c = orElseGet(msg, Component.empty());
                             for (Player player : Bukkit.getOnlinePlayers()) {
-                                player.sendMessage(c);
+                                try (var ignored = ctx.target(player)) {
+                                    player.sendMessage(render(msg, player, ctx));
+                                }
                             }
                         }))
 
                 .sub(new Command<T>("[message]").executor(
-                        new ArgumentComponents<>("msg"),
+                        new ArgumentRawText<>("msg"),
                         (ctx, msg) -> {
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
-                            player.sendMessage(orElseGet(msg, Component.empty()));
+                            player.sendMessage(render(msg, player, ctx));
                         }))
                 .sub(new Command<T>("[chat]").executor(
                         new ArgumentStrings<>("msg"),
@@ -106,17 +121,20 @@ public class DefaultEventCommands {
                             ));
                         }))
                 .sub(new Command<T>("[action_bar]").executor(
-                        new ArgumentComponents<>("msg"),
+                        new ArgumentRawText<>("msg"),
                         (ctx, msg) -> {
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
-                            player.sendActionBar(orElseGet(msg, Component.empty()));
+                            player.sendActionBar(render(msg, player, ctx));
                         }))
                 .sub(new Command<T>("[action_bar_all]").executor(
-                        new ArgumentComponents<>("msg"),
+                        new ArgumentRawText<>("msg"),
                         (ctx, msg) -> {
-                            var c = orElseGet(msg, Component.empty());
-                            Bukkit.getOnlinePlayers().forEach(pl -> pl.sendActionBar(c));
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                try (var ignored = ctx.target(player)) {
+                                    player.sendActionBar(render(msg, player, ctx));
+                                }
+                            }
                         }))
                 .sub(new Command<T>("[give_effect]").executor(
                         new ArgumentRegistry<>("effect", LegacyRegistryBridge.MOB_EFFECT),
@@ -132,54 +150,40 @@ public class DefaultEventCommands {
                             player.addPotionEffect(new PotionEffect(effect.value(), duration, amplifier));
                         }))
                 .sub(new Command<T>("[title]").executor(
-                        new ArgumentString<>("msg"),
-                        new ArgumentInt<>("fadeIn"),
-                        new ArgumentInt<>("stay"),
-                        new ArgumentInt<>("fadeOut"),
+                        new ArgumentRawTitle<>("msg"),
+                        new ArgumentString<>("fadeIn"),
+                        new ArgumentString<>("stay"),
+                        new ArgumentString<>("fadeOut"),
                         (ctx, msg, fadeIn0, stay0, fadeOut0) -> {
 
                             reqNotNull(msg, "Use [title] <\"Title\\nSubTitle\"> <?fadeIn> <?stay> <?fadeOut>");
-                            int fadeIn = orElseGet(fadeIn0, 10);
-                            int stay = orElseGet(stay0, 70);
-                            int fadeOut = orElseGet(fadeOut0, 20);
-                            String[] arr = msg.split("\\\\n", 2);
+                            int fadeIn = duration(fadeIn0, 10, ctx);
+                            int stay = duration(stay0, 70, ctx);
+                            int fadeOut = duration(fadeOut0, 20, ctx);
                             var player = ctx.target();
                             reqNotNull(player, "only with player!");
-                            player.showTitle(Title.title(
-                                    MiniMessage.deserialize(arr[0]),
-                                    arr.length == 2 ? MiniMessage.deserialize(arr[1]) : Component.empty(),
-                                    Title.Times.times(
-                                            Ticks.duration(fadeIn),
-                                            Ticks.duration(stay),
-                                            Ticks.duration(fadeOut)
-                                    )
-                            ));
+                            player.showTitle(msg.render(player, ctx, Title.Times.times(
+                                    Ticks.duration(fadeIn), Ticks.duration(stay), Ticks.duration(fadeOut))));
                         }
                 ))
                 .sub(new Command<T>("[title_all]").executor(
-                        new ArgumentString<>("msg"),
-                        new ArgumentInt<>("fadeIn"),
-                        new ArgumentInt<>("stay"),
-                        new ArgumentInt<>("fadeOut"),
+                        new ArgumentRawTitle<>("msg"),
+                        new ArgumentString<>("fadeIn"),
+                        new ArgumentString<>("stay"),
+                        new ArgumentString<>("fadeOut"),
                         (ctx, msg, fadeIn0, stay0, fadeOut0) -> {
 
                             reqNotNull(msg, "Use [title_all] <\"Title\\nSubTitle\"> <?fadeIn> <?stay> <?fadeOut>");
-                            int fadeIn = orElseGet(fadeIn0, 10);
-                            int stay = orElseGet(stay0, 70);
-                            int fadeOut = orElseGet(fadeOut0, 20);
-                            String[] arr = msg.split("\\\\n", 2);
-                            final @NotNull Component title = MiniMessage.deserialize(arr[0]);
-                            final @NotNull Component subtitle = arr.length == 2 ? MiniMessage.deserialize(arr[1]) : Component.empty();
-                            final @Nullable Title.Times times = Title.Times.times(
-                                    Ticks.duration(fadeIn),
-                                    Ticks.duration(stay),
-                                    Ticks.duration(fadeOut)
-                            );
-                            Bukkit.getOnlinePlayers().forEach(pl -> pl.showTitle(Title.title(
-                                    title,
-                                    subtitle,
-                                    times
-                            )));
+                            int fadeIn = duration(fadeIn0, 10, ctx);
+                            int stay = duration(stay0, 70, ctx);
+                            int fadeOut = duration(fadeOut0, 20, ctx);
+                            Title.Times times = Title.Times.times(
+                                    Ticks.duration(fadeIn), Ticks.duration(stay), Ticks.duration(fadeOut));
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                try (var ignored = ctx.target(player)) {
+                                    player.showTitle(msg.render(player, ctx, times));
+                                }
+                            }
                         }
                 ))
                 .sub(new Command<T>("[cooldown]").executor(
@@ -195,6 +199,20 @@ public class DefaultEventCommands {
                         })
                 )
                 ;
+    }
+
+    private static Component render(@Nullable RawTextComponentLike text, Player player, EventContext ctx) {
+        return text == null ? Component.empty() : text.asComponent(player, ctx);
+    }
+
+    private static int duration(@Nullable String value, int fallback, EventContext ctx) {
+        if (value == null) return fallback;
+        String resolved = ctx.setPlaceholders(value);
+        try {
+            return Integer.parseInt(resolved);
+        } catch (NumberFormatException e) {
+            throw new CommandMsgError("Expected integer duration: " + resolved);
+        }
     }
 
     private static <T> T orElseGet(T t, T def) {

@@ -3,6 +3,7 @@ package dev.by1337.edsl.handle;
 import dev.by1337.cmd.Command;
 import dev.by1337.cmd.CompiledCommand;
 import dev.by1337.edsl.context.EventContext;
+import dev.by1337.edsl.command.DefaultEventCommands;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.Nullable;
@@ -16,11 +17,13 @@ public class CommandHandler implements EventHandler {
     private @Nullable Command<EventContext> lastExecutor;
     private boolean canBeCompiled;
     private final boolean hasPlaceholders;
+    private final boolean deferredPlaceholders;
 
     public CommandHandler(String source) {
         this.source = source;
         hasPlaceholders = source.contains("%") || source.contains("{");
-        canBeCompiled = !hasPlaceholders;
+        deferredPlaceholders = DefaultEventCommands.defersPlaceholders(source);
+        canBeCompiled = !hasPlaceholders || deferredPlaceholders;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class CommandHandler implements EventHandler {
                 return handle(ctx);
             } else {
                 try (var ignored = ctx.tracer().timing("run: %s", source)){
-                    if (hasPlaceholders) {
+                    if (hasPlaceholders && !deferredPlaceholders) {
                         executor.execute(ctx, ctx.setPlaceholders(source));
                     } else {
                         executor.execute(ctx, source);

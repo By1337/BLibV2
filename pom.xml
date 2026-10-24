@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.edsl</groupId>
     <artifactId>EventDSL</artifactId>
-    <version>1.6</version>
+    <version>1.7</version>
 
     <properties>
         <java.version>16</java.version>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>dev.by1337.core</groupId>
             <artifactId>BLibV2</artifactId>
-            <version>1.7.8</version>
+            <version>1.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -127,6 +127,13 @@
             <artifactId>error_prone_annotations</artifactId>
             <scope>provided</scope>
             <version>2.23.0</version>
+        </dependency>
+        <!-- BMM's bytecode bridge is provided by BLib at runtime. -->
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+            <version>9.9.1</version>
+            <scope>test</scope>
         </dependency>
         <!-- tests -->
         <dependency>

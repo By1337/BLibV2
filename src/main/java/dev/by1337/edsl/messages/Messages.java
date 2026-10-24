@@ -2,14 +2,12 @@ package dev.by1337.edsl.messages;
 
 import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.edsl.EventHandler;
-import dev.by1337.edsl.LangTranslator;
 import dev.by1337.edsl.Themes;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.yaml.YamlMap;
 import dev.by1337.yaml.codec.DataResult;
 import dev.by1337.yaml.decoder.DataResultBuilder;
 import dev.by1337.yaml.decoder.YamlDecoder;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -21,12 +19,10 @@ import java.util.Map;
 
 public class Messages {
     private final LangData def;
-    private final Map<String, LangData> messages;
     private final Logger logger;
 
-    private Messages(Map<String, LangData> messages, Logger logger) {
-        this.messages = messages;
-        def = messages.values().iterator().next();
+    private Messages(LangData messages, Logger logger) {
+        def = messages;
         this.logger = logger;
     }
 
@@ -36,7 +32,7 @@ public class Messages {
         if (target == null) {
             v = def.def.messages.get(key);
         } else {
-            v = getTheme(target).get(target.locale()).messages.get(key);
+            v = def.get(target.locale()).messages.get(key);
         }
         if (v == null) {
             logger.error("Unknown message key {}", key);
@@ -61,7 +57,7 @@ public class Messages {
 
             YamlDecoder<Data> messagesDecoder = Data.decoder();
 
-            Map<Locale, Map<String, Data>> messages = new HashMap<>();
+            Map<Locale, Data> messages = new LinkedHashMap<>();
             for (YamlMap map : files) {
                 if (map.has("header")) continue;
                 Locale locale;
@@ -76,48 +72,15 @@ public class Messages {
                     locale = new Locale("ru", "RU");
                 }
 
-                if (Themes.themes().isEmpty()) {
-                    var res = messagesDecoder.decode(map.get());
-                    if (res.hasError()) {
-                        result.append(res.error());
-                    }
-                    Data data = res.result();
-                    if (data == null) return res.widen();
-                    messages.computeIfAbsent(locale, k -> new LinkedHashMap<>())
-                            .put("default", data);
-                } else {
-                    for (String s : Themes.themes().keySet()) {
-                        var copy_map = map.deepCopy();
-                        copy_map.deepReplace(Themes.themes().get(s)::setPlaceholders);
-                        var res = messagesDecoder.decode(copy_map.get());
-                        if (res.hasError()) {
-                            result.append(res.error());
-                        }
-                        Data data = res.result();
-                        if (data == null) return res.widen();
-                        messages.computeIfAbsent(locale, k -> new LinkedHashMap<>())
-                                .put(s, data);
-                    }
-                }
+                var res = messagesDecoder.decode(ctx, map.get());
+                if (res.hasError()) result.append(res.error());
+                Data data = res.result();
+                if (data == null) return res.widen();
+                messages.put(locale, data);
             }
-            Map<String, Map<Locale, Data>> map = new HashMap<>();
-            messages.forEach((locale, v) ->
-                    v.forEach((theme, data) ->
-                            map.computeIfAbsent(theme, k -> new LinkedHashMap<>())
-                                    .put(locale, data)));
-            Locale defaultLang = Themes.defaultLocale;
-            Map<String, LangData> resultMap = new HashMap<>();
-            map.forEach((theme, data) ->
-                    resultMap.put(theme, new LangData(data, defaultLang))
-            );
-            return result.result(new Messages(resultMap, plugin.getSLF4JLogger()));
+            if (messages.isEmpty()) return DataResult.error("No messages found in " + fileName);
+            return result.result(new Messages(new LangData(messages, Themes.defaultLocale), plugin.getSLF4JLogger()));
         };
-    }
-
-    private LangData getTheme(Player player) {
-        var s = Themes.getTheme(player);
-        if (s == null) return def;
-        return messages.getOrDefault(s, def);
     }
 
     private static class LangData {
@@ -159,29 +122,4 @@ public class Messages {
         }
     }
 
-    /*private static class Header {
-        public static final YamlDecoder<Header> DECODER = RecordYamlDecoder.mapOf(
-                Header::new,
-                YamlDecoder.STRING.fieldOf("default_lang", "ru_RU"),
-                YamlDecoder.STRING.fieldOf("theme_papi_detector"),
-                YamlDecoder.mapOf(YamlDecoder.STRING, YamlDecoder.mapOf(YamlDecoder.STRING, YamlDecoder.STRING))
-                        .fieldOf("themes", Map.of())
-        );
-        public final Locale default_lang;
-        public final String theme_papi_detector;
-        public final Map<String, PlaceholderApplier> themes;
-
-        public Header(String defaultLang, @Nullable String themePapiDetector, Map<String, Map<String, String>> themes) {
-            var lang = defaultLang.split("_", 2);
-            if (lang.length != 2) throw new IllegalArgumentException("Invalid default locale!");
-            default_lang = new Locale(lang[0], lang[1]);
-            theme_papi_detector = themePapiDetector;
-            this.themes = new LinkedHashMap<>();
-            themes.forEach((k, v) -> {
-                Placeholders<Void> placeholders = new Placeholders<>();
-                v.forEach(placeholders::of);
-                this.themes.put(k, placeholders.bind(null));
-            });
-        }
-    }*/
 }

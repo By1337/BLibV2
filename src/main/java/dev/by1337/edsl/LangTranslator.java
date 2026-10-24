@@ -3,7 +3,7 @@ package dev.by1337.edsl;
 import dev.by1337.core.util.io.ResourceUtil;
 import dev.by1337.core.util.text.MessageFormatter;
 import dev.by1337.core.util.text.minimessage.MiniMessage;
-import dev.by1337.edsl.messages.Messages;
+import dev.by1337.edsl.text.RawTextComponentLike;
 import dev.by1337.edsl.messages.YamlUtil;
 import dev.by1337.edsl.util.ByLocaleSelector;
 import dev.by1337.plc.PapiResolver;
@@ -16,9 +16,9 @@ import net.kyori.adventure.translation.Translator;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -52,47 +52,41 @@ public class LangTranslator implements Translator {
             YamlMap yaml = YamlUtil.replaceAndLoad(file, ".", MAGIC_KEY).deepCopy();
             yaml.deepReplace(s -> s.replace(MAGIC_KEY, "."));
 
-            ThemeSelector<ByLocaleSelector<Map<String, Object>>> res = new ThemeSelector<>(
-                    yaml,
-                    (ignored1, v) -> RAW_LANG.decode(ctx, v).flatMap(raw -> {
-                        Map<Locale, Map<String, Object>> lang = new HashMap<>();
-                        for (String langKey : raw.keySet()) {
-                            Map<String, Object> map = new HashMap<>();
-                            var rawMap = raw.get(langKey);
-                            for (Map.Entry<String, String> e : rawMap.entrySet()) {
-                                String key = (plugin.getName() + "." + e.getKey().replace(MAGIC_KEY, ".")).toLowerCase(Locale.ROOT);
-                                String value = e.getValue();
-                                if (value.contains("{") || value.contains("%")) {
-                                    map.put(key, value);
-                                } else {
-                                    map.put(key, MiniMessage.deserialize(value));
-                                }
-                            }
-                            lang.put(Translator.parseLocale(langKey), map);
-                        }
-                        return DataResult.success(new ByLocaleSelector<>(lang, Themes.defaultLocale));
-                    })
-            );
-            return DataResult.success(new LangTranslator(res, plugin));
+            return RAW_LANG.decode(ctx, yaml.get()).map(raw -> {
+                Map<Locale, Map<String, Object>> lang = new HashMap<>();
+                for (var entry : raw.entrySet()) {
+                    Map<String, Object> values = new HashMap<>();
+                    entry.getValue().forEach((name, value) -> {
+                        String key = (plugin.getName() + "." + name).toLowerCase(Locale.ROOT);
+                        values.put(key, new RawTextComponentLike(value));
+                    });
+                    lang.put(Translator.parseLocale(entry.getKey()), values);
+                }
+                return new LangTranslator(new ThemeSelector<>(new ByLocaleSelector<>(lang, Themes.defaultLocale)), plugin);
+            });
         };
     }
 
     @Override
-    public @NonNull Key name() {
+    public @NotNull Key name() {
         return key;
     }
 
     @Override
-    public @Nullable MessageFormat translate(@NonNull String key, @NonNull Locale locale) {
+    public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
         return null;
     }
 
-    public @Nullable Component translate(final TranslatableComponent component, final Locale locale) {
+    public @Nullable Component translate(final @NotNull TranslatableComponent component, final @NotNull Locale locale) {
         Player player = PlayerLocal.get();
         var map = lang.select(player).select(locale);
         if (map == null) return null;
         Object result = map.get(component.key());
         if (result == null) return null;
+        if (result instanceof RawTextComponentLike raw) {
+            return likeA(component, raw.asComponent(player, text -> PapiResolver.INSTANCE.setPlaceholders(
+                    MessageFormatter.apply(text, toArr(component.arguments())), player)));
+        }
         if (result instanceof Component c) return likeA(component, c);
         Component c = MiniMessage.deserialize(
                 PapiResolver.INSTANCE.setPlaceholders(MessageFormatter.apply(String.valueOf(result), toArr(component.arguments())), player)
