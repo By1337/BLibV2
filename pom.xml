@@ -3,10 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.core</groupId>
     <artifactId>BLibV2</artifactId>
-    <version>1.10.5</version>
+    <version>1.10.6</version>
 
     <properties>
         <java.version>16</java.version>
+        <bpatch.version>1.0.0</bpatch.version>
         <java.source>16</java.source>
         <java.target>16</java.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,9 +15,9 @@
 
     <distributionManagement>
         <repository>
-            <id>by1337.repo.2</id>
+            <id>bdev-repo</id>
             <name>releases</name>
-            <url>https://repo.by1337.space/repository/maven-releases/</url>
+            <url>https://repo.by1337.space/releases</url>
         </repository>
     </distributionManagement>
 
@@ -34,176 +35,120 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
+                <groupId>dev.by1337.bpatch</groupId>
+                <artifactId>bpatch-maven-plugin</artifactId>
+                <version>${bpatch.version}</version>
                 <executions>
                     <execution>
-                        <id>copy-runtime-jars</id>
-                        <phase>process-resources</phase>
+                        <id>pack-runtime-bridges</id>
                         <goals>
-                            <goal>copy</goal>
+                            <goal>pack</goal>
                         </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.by1337.blib</groupId>
-                                    <artifactId>BLib</artifactId>
-                                    <version>1.9.10</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>BLib-bridge-1.9.10.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.16.5</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.16.5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.17.1</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.17.1.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.18.2</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.18.2.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.19.4</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.19.4.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.20.1</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.20.1.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.20.2</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.20.2.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.20.4</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.20.4.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.20.6</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.20.6.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.21</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.21.3</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.3.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.21.4</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.4.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.5+1.21.5</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.5.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.6</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.6.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.7</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.7.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.8</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.8.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.9</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.9.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.10</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.10.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+1.21.11</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+1.21.11.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+26.1.2</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+26.1.2.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+26.3</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+26.3.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>dev.by1337.core.nms</groupId>
-                                    <artifactId>BLibNms</artifactId>
-                                    <version>1.6+26.2</version>
-                                    <outputDirectory>${project.build.outputDirectory}/bridges</outputDirectory>
-                                    <destFileName>bridge+26.2.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <jars>
+                        <jar>
+                            <artifact>org.by1337.blib:BLib:1.9.10</artifact>
+                            <output>bridges/BLib-bridge-1.9.10.jar</output>
+                            <compression>STORED</compression>
+                        </jar>
+                    </jars>
+                    <patchSets>
+                        <patchSet>
+                            <output>bridges/nms.zip</output>
+                            <compression>STORED</compression>
+                            <mode>CHAIN</mode>
+                            <excludeMetaInf>true</excludeMetaInf>
+                            <versions>
+                                <version>
+                                    <id>1.16.5</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.16.5</artifact>
+                                </version>
+                                <version>
+                                    <id>1.17.1</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.17.1</artifact>
+                                </version>
+                                <version>
+                                    <id>1.18.2</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.18.2</artifact>
+                                </version>
+                                <version>
+                                    <id>1.19.4</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.19.4</artifact>
+                                </version>
+                                <version>
+                                    <id>1.20.1</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.20.1</artifact>
+                                </version>
+                                <version>
+                                    <id>1.20.2</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.20.2</artifact>
+                                </version>
+                                <version>
+                                    <id>1.20.4</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.20.4</artifact>
+                                </version>
+                                <version>
+                                    <id>1.20.6</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.20.6</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.21</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.3</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.21.3</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.4</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.21.4</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.5</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.5+1.21.5</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.6</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.6</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.7</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.7</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.8</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.8</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.9</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.9</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.10</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.10</artifact>
+                                </version>
+                                <version>
+                                    <id>1.21.11</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+1.21.11</artifact>
+                                </version>
+                                <version>
+                                    <id>26.1.2</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+26.1.2</artifact>
+                                </version>
+                                <version>
+                                    <id>26.2</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+26.2</artifact>
+                                </version>
+                                <version>
+                                    <id>26.3</id>
+                                    <artifact>dev.by1337.core.nms:BLibNms:1.6+26.3</artifact>
+                                </version>
+                            </versions>
+                        </patchSet>
+                    </patchSets>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -275,14 +220,27 @@
             <url>https://libraries.minecraft.net</url>
         </repository>
         <repository>
-            <id>bdev-repo-releases</id>
-            <name>BDev repository</name>
+            <id>bdev-repo</id>
+            <name>releases</name>
             <url>https://repo.by1337.space/releases</url>
         </repository>
     </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bdev-repo</id>
+            <name>releases</name>
+            <url>https://repo.by1337.space/releases</url>
+        </pluginRepository>
+    </pluginRepositories>
+
 
     <dependencies>
+        <dependency>
+            <groupId>dev.by1337.bpatch</groupId>
+            <artifactId>bpatch-runtime</artifactId>
+            <version>${bpatch.version}</version>
+        </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>

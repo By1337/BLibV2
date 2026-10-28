@@ -1,5 +1,6 @@
 package dev.by1337.core;
 
+import dev.by1337.bpatch.PatchArchive;
 import dev.by1337.core.util.RepositoryUtil;
 import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.core.util.reflect.ClasspathUtil;
@@ -89,12 +90,12 @@ class Bootstrap {
 
     private static void loadNMSBridge(Plugin plugin) {
         try {
-            loadNMSBridge(plugin, "bridge+" + ServerVersion.CURRENT_ID + ".jar");
+            loadNMSBridge(plugin, ServerVersion.CURRENT_ID);
         } catch (IOException e) {
             if (ServerVersion.is1_20_6orNewer()) {
                 log.warn("Nms bridge for {} not found! Attempting to load for {}", ServerVersion.CURRENT_ID, ServerVersion.LastKnown.ID);
                 try {
-                    loadNMSBridge(plugin, "bridge+" + ServerVersion.LastKnown.ID + ".jar");
+                    loadNMSBridge(plugin, ServerVersion.LastKnown.ID);
                 } catch (IOException ignored) {
                     throw new RuntimeException(e);
                 }
@@ -104,28 +105,26 @@ class Bootstrap {
         }
     }
 
-    private static void loadNMSBridge(Plugin plugin, String bridgeName) throws IOException {
-        File outFolder = new File(plugin.getDataFolder(), ".bridges");
-        outFolder.mkdirs();
-        File file = new File(outFolder, bridgeName);
-        if (!file.exists()) {
-            try (var in = getInputStream("bridges/" + bridgeName)) {
+    private static void loadNMSBridge(Plugin plugin, String versionId) throws IOException {
+        Path file = unpackNMSBridge(plugin.getDataFolder().toPath().resolve(".bridges"), versionId);
+        ClasspathUtil.addUrl(plugin, file);
+    }
+
+    static Path unpackNMSBridge(Path outFolder, String versionId) throws IOException {
+        Path file = outFolder.resolve("bridge+" + versionId + ".jar");
+        if (!Files.isRegularFile(file)) {
+            try (var in = getInputStream("bridges/nms.zip")) {
                 if (in == null) {
-                    if (file.exists()) {
-                        log.warn("Use bridge from {}", file);
-                    } else {
-                        throw new FileNotFoundException("Unable to find bridges/" + bridgeName);
-                    }
-                } else {
-                    try (var out = new FileOutputStream(file)) {
-                        in.transferTo(out);
-                    }
+                    throw new FileNotFoundException("Unable to find bridges/nms.zip");
+                }
+                try (PatchArchive archive = PatchArchive.open(in)) {
+                    archive.unpack(versionId, file);
                 }
             } catch (IOException e) {
-                throw new IOException("Failed to load nms bridge " + bridgeName, e);
+                throw new IOException("Failed to unpack nms bridge " + versionId, e);
             }
         }
-        ClasspathUtil.addUrl(plugin, file.toPath());
+        return file;
     }
 
     private static boolean hasClass(String className) {
