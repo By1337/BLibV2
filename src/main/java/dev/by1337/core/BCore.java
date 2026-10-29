@@ -7,8 +7,11 @@ import dev.by1337.core.bridge.location.LocationBar;
 import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.entity.EntityWrapper;
+import dev.by1337.core.event.EventBus;
 
 public class BCore {
+    static EventBus events;
+
     static BlockEntityUtil blockEntityUtil;
     static ItemStackSerializer itemStackSerializer;
     static InventoryUtil inventoryUtil;
@@ -44,5 +47,9 @@ public class BCore {
     // 1.21.6+
     public static LocationBar locationBar() {
         return locationBar;
+    }
+
+    public static EventBus events() {
+        return events;
     }
 }

@@ -11,6 +11,8 @@ import dev.by1337.core.command.bcmd.argument.ArgumentInt;
 import dev.by1337.core.command.bcmd.argument.ArgumentPlayers;
 import dev.by1337.core.command.bcmd.argument.GlobalRegistryItem;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
+import dev.by1337.core.event.EventBus;
+import dev.by1337.core.event.EventBusLifecycle;
 import dev.by1337.core.legacy.BLibBridge;
 import dev.by1337.core.legacy.BVaultBridge;
 import dev.by1337.core.particle.EmitterGraphLoader;
@@ -43,6 +45,7 @@ public class BDev extends JavaPlugin {
     private ParticleRenderBootstrapper particles;
     private EmitterGraphLoader emitterGraphLoader;
     private ThemesBotter themes;
+    private EventBusLifecycle eventBusLifecycle;
 
     public BDev() {
         getDataFolder().mkdirs();
@@ -65,6 +68,10 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        EventBus events = new EventBus(getLogger());
+        BCore.events = events;
+        eventBusLifecycle = new EventBusLifecycle(this, events);
+        getServer().getPluginManager().registerEvents(eventBusLifecycle, this);
         particles = new ParticleRenderBootstrapper("bdev-particles", this);
         particles.enable();
         emitterGraphLoader = new EmitterGraphLoader(this);
@@ -80,6 +87,8 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (eventBusLifecycle != null) eventBusLifecycle.close();
+        BCore.events = null;
         emitterGraphLoader.close();
         particles.disable();
         commands.unregister();
@@ -93,9 +102,9 @@ public class BDev extends JavaPlugin {
                 .sub(emitterGraphLoader.commands())
                 .sub(TestCommand.createTest("commands"))
                 .sub(new Command<CommandSender>("vibrationtest")
-                                .executor(sender -> sendTestVibration(sender, false))
-                                .sub(new Command<CommandSender>("block").executor(sender -> sendTestVibration(sender, false)))
-                                .sub(new Command<CommandSender>("entity").executor(sender -> sendTestVibration(sender, true)))
+                        .executor(sender -> sendTestVibration(sender, false))
+                        .sub(new Command<CommandSender>("block").executor(sender -> sendTestVibration(sender, false)))
+                        .sub(new Command<CommandSender>("entity").executor(sender -> sendTestVibration(sender, true)))
                 )
                 .sub(new Command<CommandSender>("test")
                         .requires(sender -> sender instanceof Player)
@@ -177,18 +186,18 @@ public class BDev extends JavaPlugin {
 
                                     }
 
-/*                                    var f = EventExecutor.class.getDeclaredField("eventExecutorMap");
-                                    f.setAccessible(true);
-                                    ConcurrentMap<Method, Class<? extends EventExecutor>> eventExecutorMap = (ConcurrentMap<Method, Class<? extends EventExecutor>>) f.get(null);
-                                    var input = reader.readString();
-                                    for (Method method : eventExecutorMap.keySet()) {
-                                        var arr = method.getParameterTypes();
-                                        if (arr.length != 1) continue;
-                                        var name = arr[0].getCanonicalName();
-                                        if (name.startsWith(input)){
-                                            suggestions.suggest(name);
-                                        }
-                                    }*/
+                                    /*                                    var f = EventExecutor.class.getDeclaredField("eventExecutorMap");
+                                                    f.setAccessible(true);
+                                                    ConcurrentMap<Method, Class<? extends EventExecutor>> eventExecutorMap = (ConcurrentMap<Method, Class<? extends EventExecutor>>) f.get(null);
+                                                    var input = reader.readString();
+                                                    for (Method method : eventExecutorMap.keySet()) {
+                                                        var arr = method.getParameterTypes();
+                                                        if (arr.length != 1) continue;
+                                                        var name = arr[0].getCanonicalName();
+                                                        if (name.startsWith(input)){
+                                                            suggestions.suggest(name);
+                                                        }
+                                                    }*/
                                 } catch (Exception ex) {
                                     throw new CommandMsgError(ex.getMessage());
                                 }
@@ -213,9 +222,9 @@ public class BDev extends JavaPlugin {
                             sb.append("]");
                             log.info(sb.toString());
                             s.sendMessage(sb.toString());
-                        }))
-                ;
+                        }));
     }
+
     private void sendTestVibration(CommandSender sender, boolean entityDestination) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("This command requires a player.");
@@ -227,7 +236,7 @@ public class BDev extends JavaPlugin {
         VibrationParticleOption option = entityDestination
                 ? VibrationParticleOption.toEntity(origin, player.getEntityId(), 0.0f, 30)
                 : VibrationParticleOption.toBlock(origin,
-                new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
+                        new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
         ParticleRender.render(player, ParticleData.of(ParticleType.VIBRATION, option),
                 start.getX(), start.getY(), start.getZ());
         sender.sendMessage("Vibration sent to " + (entityDestination ? "you" : "the block ahead") + ".");
