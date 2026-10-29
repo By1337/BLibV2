@@ -12,6 +12,7 @@ import dev.by1337.core.command.bcmd.argument.ArgumentPlayers;
 import dev.by1337.core.command.bcmd.argument.GlobalRegistryItem;
 import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.legacy.BLibBridge;
+import dev.by1337.core.legacy.BVaultBridge;
 import dev.by1337.core.particle.EmitterGraphLoader;
 import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.particle.*;
@@ -53,6 +54,7 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        BVaultBridge.bootstrap(this);
         try {
             BLibBridge.load(this);
         } catch (Exception e) {
