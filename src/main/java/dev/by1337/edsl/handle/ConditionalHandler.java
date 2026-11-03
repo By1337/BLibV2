@@ -3,17 +3,10 @@ package dev.by1337.edsl.handle;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.edsl.check.CheckHandler;
-import dev.by1337.yaml.YamlValue;
-import dev.by1337.yaml.codec.DataResult;
-import dev.by1337.yaml.codec.RecordYamlCodecBuilder;
-import dev.by1337.yaml.codec.YamlCodec;
 import dev.by1337.yaml.decoder.RecordYamlDecoder;
 import dev.by1337.yaml.decoder.YamlDecoder;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class ConditionalHandler implements EventHandler {
     private final CheckHandler tester;
@@ -28,7 +21,7 @@ public class ConditionalHandler implements EventHandler {
 
     @Override
     public boolean handle(EventContext ctx) {
-        try (var enter = ctx.tracer().enter("if-do {", "} -> %s")){
+        try (var enter = ctx.tracer().enter("if-do {", "} -> %s")) {
             if (tester.handle(ctx)) {
                 if (success != null)
                     success.handle(ctx);
@@ -44,12 +37,19 @@ public class ConditionalHandler implements EventHandler {
 
 
     public static YamlDecoder<ConditionalHandler> decoder(YamlDecoder<EventHandler> codec) {
-        YamlDecoder<CheckHandler> ifDecoder = CheckHandler.decoder();
+        return decoder(codec, CheckHandler.decoder());
+    }
+
+    public static YamlDecoder<ConditionalHandler> decoder(YamlDecoder<EventHandler> codec, YamlDecoder<CheckHandler> ifDecoder) {
         return RecordYamlDecoder.mapOf(
-                ConditionalHandler::new,
-                ifDecoder.fieldOf("if")
-                        .or(ifDecoder.fieldOf("if-all"))
-                        .or(ifDecoder.fieldOf("if-one")),
+                (condition, all, one, success, failure) -> new ConditionalHandler(
+                        condition != null ? condition : all != null ? all : one,
+                        success,
+                        failure
+                ),
+                ifDecoder.fieldOf("if"),
+                ifDecoder.fieldOf("if-all"),
+                ifDecoder.fieldOf("if-one"),
                 codec.fieldOf("do"),
                 codec.fieldOf("else")
         );

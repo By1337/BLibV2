@@ -4,7 +4,6 @@ import dev.by1337.cmd.Command;
 import dev.by1337.cmd.CompiledCommand;
 import dev.by1337.edsl.context.EventContext;
 import dev.by1337.edsl.command.DefaultEventCommands;
-import dev.by1337.edsl.command.LocalizedTextCommands;
 import dev.by1337.edsl.EventHandler;
 import dev.by1337.yaml.YamlValue;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +20,6 @@ public class CommandHandler implements EventHandler {
     private final boolean deferredPlaceholders;
 
     public CommandHandler(String source) {
-        source = LocalizedTextCommands.preprocess(source);
         this.source = source;
         hasPlaceholders = source.contains("%") || source.contains("{");
         deferredPlaceholders = DefaultEventCommands.defersPlaceholders(source);
@@ -32,7 +30,7 @@ public class CommandHandler implements EventHandler {
     public boolean handle(EventContext ctx) {
         Command<EventContext> executor = ctx.command();
         if (compiled != null && executor == lastExecutor) {
-            try (var ignored = ctx.tracer().timing("run: %s", source)){
+            try (var ignored = ctx.tracer().timing("run: %s", source)) {
                 compiled.execute(ctx);
             } catch (Exception e) {
                 log.error("Failed to run compiled command {}.", source, e);
@@ -47,7 +45,7 @@ public class CommandHandler implements EventHandler {
                 }
                 return handle(ctx);
             } else {
-                try (var ignored = ctx.tracer().timing("run: %s", source)){
+                try (var ignored = ctx.tracer().timing("run: %s", source)) {
                     if (hasPlaceholders && !deferredPlaceholders) {
                         executor.execute(ctx, ctx.setPlaceholders(source));
                     } else {

@@ -1,5 +1,6 @@
 package dev.by1337.edsl.text;
 
+import dev.by1337.core.util.text.AdventureAdapter;
 import dev.by1337.core.util.text.minimessage.BMM;
 import dev.by1337.edsl.PlayerLocal;
 import dev.by1337.edsl.Themes;
@@ -64,7 +65,7 @@ public final class RawTextComponentLike implements ComponentLike {
         }
         PlaceholderApplier replacer = Themes.getTheme(themeId);
         String text = replacer == null ? source : replacer.setPlaceholders(source);
-        Pair pair = new Pair(text, canBeCached(text) ? BMM.deserialize(text) : null);
+        Pair pair = new Pair(text, canBeCached(text) ? AdventureAdapter.stable(BMM.deserialize(text)) : null);
         synchronized (this) {
             current = cache;
             Pair[] entries = current.token == token ? current.entries : new Pair[2];

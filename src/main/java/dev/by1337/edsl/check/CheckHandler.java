@@ -24,9 +24,8 @@ public interface CheckHandler extends EventHandler {
             public DataResult<CheckHandler> decode(DecodeContext ctx, YamlValue yaml) {
                 var fromKey = ctx.getFromKey();
                 boolean oneOf = fromKey != null && fromKey.equals("if-one");
-                if (yaml.isCollection()) return list.decode(yaml).map(list -> c -> {
+                if (yaml.isCollection()) return list.decode(ctx, yaml).map(list -> c -> {
                     try (EventTracer.TracerDepth enter = c.tracer().enter(oneOf ? "if-one" : "if", "if-list -> %s")) {
-                        boolean state = true;
                         for (CheckHandler handler : list) {
                             if (handler.handle(c)) {
                                 if (oneOf) {
@@ -38,7 +37,9 @@ public interface CheckHandler extends EventHandler {
                                 return false;
                             }
                         }
-                        return state;
+                        boolean result = !oneOf;
+                        enter.result(result);
+                        return result;
                     }
                 });
 
@@ -79,7 +80,7 @@ public interface CheckHandler extends EventHandler {
     static <T extends EventContext> CheckHandler nopFalse() {
         return ctx -> {
             ctx.tracer().log("if 'false' -> false");
-            return true;
+            return false;
         };
     }
 

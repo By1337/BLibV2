@@ -94,6 +94,18 @@ public class LangTranslator implements Translator {
         net.kyori.adventure.translation.GlobalTranslator.translator().addSource(REGISTRY);
     }
 
+    // Only TextRegistry uses generated, collision-free prefixes. Remove the entire entry on close;
+    // unlike persistent config registries, transient openings must not leave tombstones forever.
+    static void removeRuntimeTranslations(String prefix) {
+        REGISTRY.removeTranslations(prefix);
+    }
+
+    private synchronized void removeTranslations(String prefix) {
+        var updated = new HashMap<>(registeredTranslations);
+        updated.remove(prefix);
+        registeredTranslations = Map.copyOf(updated);
+    }
+
     private synchronized void replaceTranslations(String prefix, Map<String, ? extends ComponentLike> translations) {
         Objects.requireNonNull(prefix);
         if (prefix.isEmpty() || prefix.endsWith(".")) throw new IllegalArgumentException("Invalid translation prefix: " + prefix);
@@ -106,6 +118,14 @@ public class LangTranslator implements Translator {
         var updated = new HashMap<>(registeredTranslations);
         updated.put(prefix, Map.copyOf(values));
         registeredTranslations = Map.copyOf(updated);
+    }
+
+    /** Adventure 5 probes availability without arguments; never execute deferred effects during a probe. */
+    public boolean canTranslate(String key, Locale locale) {
+        var snapshot = registeredTranslations;
+        for (String prefix : snapshot.keySet()) if (key.startsWith(prefix + ".")) return true;
+        var values = lang.select(PlayerLocal.get()).select(locale);
+        return values != null && values.containsKey(key);
     }
 
     public @Nullable Component translate(final @NotNull TranslatableComponent component, final @NotNull Locale locale) {
@@ -126,9 +146,14 @@ public class LangTranslator implements Translator {
         }
         if (result == null) return registered ? likeA(component, Component.empty()) : null;
         while (result instanceof LocalizedText localized) result = localized.select(locale);
+        if (result instanceof dev.by1337.edsl.text.TranslatedText text) {
+            return likeA(component, text.render(component, locale));
+        }
         if (result instanceof RawTextComponentLike raw) {
-            return likeA(component, raw.asComponent(player, text -> PapiResolver.INSTANCE.setPlaceholders(
-                    MessageFormatter.apply(text, toArr(component.arguments())), player)));
+            return likeA(component, raw.asComponent(player, text -> {
+                String formatted = MessageFormatter.apply(text, toArr(component.arguments()));
+                return formatted.indexOf('%') < 0 ? formatted : PapiResolver.INSTANCE.setPlaceholders(formatted, player);
+            }));
         }
         if (result instanceof ComponentLike c) return likeA(component, c.asComponent());
         Component c = MiniMessage.deserialize(

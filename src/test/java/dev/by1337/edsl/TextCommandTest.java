@@ -63,7 +63,9 @@ class TextCommandTest {
                         (ctx, text) -> output.set(text)));
         var context = new EventContext(false) {
             @Override
-            public String setPlaceholders(String source) { return source.replace("{value}", "resolved"); }
+            public String setPlaceholders(String source) {
+                return source.replace("{value}", "resolved");
+            }
         }.setCommand(root);
         new CommandHandler("[console] say {value}").handle(context);
         assertEquals("say resolved", output.get());
@@ -71,8 +73,9 @@ class TextCommandTest {
 
     @Test
     void allTextAliasesDeferButSimilarCommandNamesDoNot() {
-        for (String name : new String[]{"message", "broadcast", "bc", "message_all", "action_bar", "action_bar_all", "title", "title_all"}) {
+        for (String name : new String[]{ "message", "broadcast", "bc", "message_all", "action_bar", "action_bar_all", "title", "title_all" }) {
             assertTrue(DefaultEventCommands.defersPlaceholders("[" + name + "] {value}"));
+            assertTrue(DefaultEventCommands.defersPlaceholders("[" + name.toUpperCase(java.util.Locale.ROOT) + "] {value}"));
         }
         assertFalse(DefaultEventCommands.defersPlaceholders("[message_extra] {value}"));
         assertFalse(DefaultEventCommands.defersPlaceholders("[console] [message] {value}"));
@@ -87,7 +90,9 @@ class TextCommandTest {
         AtomicReference<String> content = new AtomicReference<>("first\\nsecond");
         var context = new EventContext(false) {
             @Override
-            public String setPlaceholders(String source) { return source.replace("{content}", content.get()); }
+            public String setPlaceholders(String source) {
+                return source.replace("{content}", content.get());
+            }
         }.setCommand(root);
         var handler = new CommandHandler("[title] \"{content}\"");
         handler.handle(context);

@@ -10,7 +10,9 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 
 public final class ArgumentRawTitle<C> extends Argument<C, ArgumentRawTitle.Text> {
-    public ArgumentRawTitle(String name) { super(name); }
+    public ArgumentRawTitle(String name) {
+        super(name);
+    }
 
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) {
@@ -24,10 +26,14 @@ public final class ArgumentRawTitle<C> extends Argument<C, ArgumentRawTitle.Text
     }
 
     @Override
-    public boolean compilable() { return true; }
+    public boolean compilable() {
+        return true;
+    }
 
     @Override
-    public boolean allowAsync() { return true; }
+    public boolean allowAsync() {
+        return true;
+    }
 
     public static final class Text {
         private final RawTextComponentLike text;
@@ -35,6 +41,10 @@ public final class ArgumentRawTitle<C> extends Argument<C, ArgumentRawTitle.Text
 
         private Text(String source) {
             text = new RawTextComponentLike(source);
+        }
+
+        public static Text of(String source) {
+            return new Text(source);
         }
 
         public Title render(Player player, EventContext context, Title.Times times) {
@@ -59,6 +69,7 @@ public final class ArgumentRawTitle<C> extends Argument<C, ArgumentRawTitle.Text
                     parts.length == 2 ? BMM.deserialize(parts[1]) : Component.empty());
         }
 
-        private record Parsed(RawTextComponentLike.Pair formatted, Component title, Component subtitle) {}
+        private record Parsed(RawTextComponentLike.Pair formatted, Component title, Component subtitle) {
+        }
     }
 }

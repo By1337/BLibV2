@@ -1,6 +1,8 @@
 package dev.by1337.edsl.decoder;
 
 import dev.by1337.edsl.EventHandler;
+import dev.by1337.edsl.check.CheckHandler;
+import dev.by1337.edsl.command.TextCommands;
 import dev.by1337.edsl.command.args.ArgumentParamsMap;
 import dev.by1337.edsl.handle.*;
 import dev.by1337.yaml.YamlValue;
@@ -23,9 +25,17 @@ public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
     private final YamlDecoder<WeightsHandler> weightsCodec = WeightsHandler.decoder(this);
     private final YamlDecoder<OneOfHandler> oneOfCodec = OneOfHandler.decoder(this);
 
-    private final YamlDecoder<ConditionalHandler> ifDecoder = ConditionalHandler.decoder(this);
+    private final YamlDecoder<ConditionalHandler> ifDecoder;
     private final YamlDecoder<List<EventHandler>> selfList = this.listOf();
     private @Nullable Function<String, String> commandRewriter;
+
+    public EventHandlerDecoder() {
+        this(CheckHandler.decoder());
+    }
+
+    public EventHandlerDecoder(YamlDecoder<CheckHandler> checks) {
+        ifDecoder = ConditionalHandler.decoder(this, checks);
+    }
 
 
     public DataResult<? extends EventHandler> decodeCommand(DecodeContext ctx, String cmd, YamlValue value) {
@@ -38,6 +48,9 @@ public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
                 return weightsCodec.decode(ctx, value);
             } else if (cmd.equals("oneOf")) {
                 return oneOfCodec.decode(ctx, value);
+            }
+            if (value.isMap() && TextCommands.canonical(cmd) != null) {
+                return TextCommands.decodeLocalized(ctx, TextCommands.canonical(cmd), value);
             }
             if (value.isMap()) {
                 return YamlDecoder.STRING_TO_STRING.decode(ctx, value).flatMap(params -> {
@@ -68,13 +81,11 @@ public class EventHandlerDecoder implements YamlDecoder<EventHandler> {
         return S2OBJET_MAP.decode(yaml).flatMap(map -> {
             List<EventHandler> handlers = new ArrayList<>();
             var result = new DataResultBuilder();
-            if (
-                    map.containsKey("if") ||
-                            map.containsKey("if-all") ||
-                            map.containsKey("if-one") ||
-                            map.containsKey("do") ||
-                            map.containsKey("else")
-            ) {
+            if (map.containsKey("if") ||
+                    map.containsKey("if-all") ||
+                    map.containsKey("if-one") ||
+                    map.containsKey("do") ||
+                    map.containsKey("else")) {
                 ifDecoder.decode(ctx, yaml).ifPresent(handlers::add, result::append);
             }
             for (String cmd : map.keySet()) {

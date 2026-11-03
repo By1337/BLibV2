@@ -7,10 +7,30 @@ import java.util.Arrays;
 
 public class PlayerLocal {
 
+    private static final ThreadLocal<Player> SCOPED = new ThreadLocal<>();
+
+    /** Explicit rendering context for hosts outside BMenu/Leaf. Nested scopes restore their caller. */
+    public static Scope withPlayer(Player player) {
+        Player previous = SCOPED.get();
+        SCOPED.set(java.util.Objects.requireNonNull(player));
+        return () -> {
+            if (previous == null) SCOPED.remove();
+            else SCOPED.set(previous);
+        };
+    }
+
+    @FunctionalInterface
+    public interface Scope extends AutoCloseable {
+        @Override
+        void close();
+    }
+
     private static ThreadLocal<Player> LOCAL1;
     private static ThreadLocal<Player> LOCAL2;
 
     public static Player get() {
+        Player scoped = SCOPED.get();
+        if (scoped != null) return scoped;
         if (LOCAL1 != null) {
             var v = LOCAL1.get();
             if (v != null) return v;
