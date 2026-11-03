@@ -17,13 +17,14 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 @ApiStatus.Internal
 class Bootstrap {
 
     private static final Logger log = LoggerFactory.getLogger("BLib");
 
-    public static void bootstrap(Plugin plugin, File jar) {
+    static void bootstrap(Plugin plugin, File jar) {
         Path libraries = plugin.getDataFolder().toPath().resolve(".libraries");
         libraries.toFile().mkdirs();
         if (!hasClass("org.objectweb.asm.tree.ClassNode")) {
@@ -34,9 +35,6 @@ class Bootstrap {
         if (!hasClass("org.joml.Quaternionf")) {
             ClasspathUtil.addUrl(plugin, RepositoryUtil.download("org.joml:joml:1.10.8", libraries));
         }
-        if (!hasClass("com.github.benmanes.caffeine.cache.Caffeine")) {
-            ClasspathUtil.addUrl(plugin, RepositoryUtil.download("com.github.ben-manes.caffeine:caffeine:3.2.4", libraries));
-        }
         try {
             var lookup = MethodHandles.lookup();
             lookup.ensureInitialized(MiniMessage.class);
@@ -44,16 +42,22 @@ class Bootstrap {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+        Path bridges = plugin.getDataFolder().toPath().resolve(".bridges");
         try {
-            File bridges = new File(plugin.getDataFolder(), ".bridges");
             File version = new File(plugin.getDataFolder(), ".version");
             long time = Files.getLastModifiedTime(jar.toPath()).toMillis();
             if (!version.exists() || time != readLong(version)) {
                 writeLong(version, time);
-                deleteFolder(bridges);
+                deleteFolder(bridges.toFile());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        if (!hasClass("com.zaxxer.hikari.HikariConfig")) {
+            loadLib(bridges, "HikariCP.jar", plugin);
+        }
+        if (!hasClass("com.github.benmanes.caffeine.cache.Caffeine")) {
+            loadLib(bridges, "Caffeine.jar", plugin);
         }
         loadNMSBridge(plugin);
         try {
@@ -61,6 +65,13 @@ class Bootstrap {
             boot.getMethod("bootstrap").invoke(null);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load nms bridge", ex);
+        }
+    }
+
+    static void onLoadBoot(Plugin plugin) {
+        Path bridges = plugin.getDataFolder().toPath().resolve(".bridges");
+        if (!hasClass("dev.by1337.vault.BVaultApi")) {
+            loadLib(bridges, "BVault-api.jar", plugin);
         }
     }
 
@@ -129,7 +140,7 @@ class Bootstrap {
 
     private static boolean hasClass(String className) {
         try {
-            Class.forName(className);
+            Class.forName(className, false, Bootstrap.class.getClassLoader());
             return true;
         } catch (ClassNotFoundException e) {
             return false;
@@ -138,7 +149,7 @@ class Bootstrap {
 
     @Nullable
     private static InputStream getInputStream(String s) {
-        ClassLoader loader = RepositoryUtil.class.getClassLoader();
+        ClassLoader loader = Bootstrap.class.getClassLoader();
         URL url = loader.getResource(s);
         if (url == null) {
             return null;
@@ -150,5 +161,27 @@ class Bootstrap {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private static void loadLib(Path folder, String name, Plugin plugin) {
+        Path file = folder.resolve(name);
+        if (!Files.isRegularFile(file)) {
+            try (var input = plugin.getResource("libs/" + name)) {
+                Files.createDirectories(folder);
+                if (input == null) {
+                    throw new IOException("Unable to find libs/" + name);
+                }
+                Path temporary = Files.createTempFile(folder, "HikariCP-", ".tmp");
+                try {
+                    Files.copy(input, temporary, StandardCopyOption.REPLACE_EXISTING);
+                    Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
+                } finally {
+                    Files.deleteIfExists(temporary);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        ClasspathUtil.addUrl(plugin, file);
     }
 }

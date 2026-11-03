@@ -25,7 +25,7 @@ import java.util.jar.JarOutputStream;
 
 public class ClasspathUtil {
     private static final MethodHandle ADD_URL;
-    private static final Logger log = LoggerFactory.getLogger("BDevCore");
+    private static final Logger log = LoggerFactory.getLogger("BLib");
 
     public static void addUrl(Plugin plugin, Path path) {
         addUrl(plugin, path, false);

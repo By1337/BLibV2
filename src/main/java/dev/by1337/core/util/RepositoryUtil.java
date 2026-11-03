@@ -19,9 +19,10 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
 public class RepositoryUtil {
+    public static final String PAPER_REPO = "https://repo.papermc.io/repository/maven-public/";
     public static final String MAVEN_REPO = "https://repo1.maven.org/maven2";
     public static final String BDEV_REPO = "https://repo.by1337.space/releases";
-    private static final Logger log = LoggerFactory.getLogger("BDevCore");
+    private static final Logger log = LoggerFactory.getLogger("BLib");
 
     //groupId:artifactId:version
     public static Path download(String path, Path folder) {
@@ -44,6 +45,9 @@ public class RepositoryUtil {
             String version,
             Path folder
     ) {
+        if (!repo.equals(PAPER_REPO) && !repo.equals(MAVEN_REPO)) {
+            log.warn("Downloading {}:{}:{} from {} repo", groupId, artifactId, version, repo);
+        }
         // url/{groupId}/{artifactId}/{version}/{artifactId}-{version}.jar
         String path = groupId.replace('.', '/') + '/'
                 + artifactId + '/'

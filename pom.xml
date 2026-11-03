@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>dev.by1337.core</groupId>
     <artifactId>BLibV2</artifactId>
-    <version>1.10.7</version>
+    <version>1.10.12</version>
 
     <properties>
         <java.version>16</java.version>
@@ -55,7 +55,17 @@
                         </jar>
                         <jar>
                             <artifact>dev.by1337.vault:api:1.1</artifact>
-                            <output>bridges/BVault-api-1.1.jar</output>
+                            <output>libs/BVault-api.jar</output>
+                            <compression>STORED</compression>
+                        </jar>
+                        <jar>
+                            <artifact>com.zaxxer:HikariCP:5.1.0</artifact>
+                            <output>libs/HikariCP.jar</output>
+                            <compression>STORED</compression>
+                        </jar>
+                        <jar>
+                            <artifact>com.github.ben-manes.caffeine:caffeine:3.2.4</artifact>
+                            <output>libs/Caffeine.jar</output>
                             <compression>STORED</compression>
                         </jar>
                     </jars>
@@ -172,10 +182,23 @@
                                 <excludes>
                                     <exclude>dev.by1337.vault:api</exclude>
                                     <exclude>dev.by1337.core.nms:*</exclude>
+                                    <exclude>dev.by1337.sync:bsync-common</exclude>
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>com.github.ben-manes.caffeine:*</exclude>
+                                    <exclude>com.zaxxer:*</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>org.jspecify:*</exclude>
                                 </excludes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>cfg_items/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -292,13 +315,13 @@
         <dependency>
             <groupId>dev.by1337.particle</groupId>
             <artifactId>render-bukkit</artifactId>
-            <version>2.2</version>
+            <version>2.3</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dev.by1337.particle</groupId>
             <artifactId>flow</artifactId>
-            <version>2.2</version>
+            <version>2.3</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -310,13 +333,19 @@
         <dependency>
             <groupId>dev.by1337.edsl</groupId>
             <artifactId>EventDSL</artifactId>
-            <version>1.8.4</version>
+            <version>1.8.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dev.by1337.sync</groupId>
             <artifactId>bsync-k2v</artifactId>
-            <version>1.4</version>
+            <version>1.6</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

@@ -14,7 +14,6 @@ import dev.by1337.core.command.bcmd.requires.RequiresPermission;
 import dev.by1337.core.event.EventBus;
 import dev.by1337.core.event.EventBusLifecycle;
 import dev.by1337.core.legacy.BLibBridge;
-import dev.by1337.core.legacy.BVaultBridge;
 import dev.by1337.core.particle.EmitterGraphLoader;
 import dev.by1337.core.util.network.ChannelGetter;
 import dev.by1337.particle.*;
@@ -57,7 +56,7 @@ public class BDev extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        BVaultBridge.bootstrap(this);
+        Bootstrap.onLoadBoot(this);
         try {
             BLibBridge.load(this);
         } catch (Exception e) {
@@ -236,7 +235,7 @@ public class BDev extends JavaPlugin {
         VibrationParticleOption option = entityDestination
                 ? VibrationParticleOption.toEntity(origin, player.getEntityId(), 0.0f, 30)
                 : VibrationParticleOption.toBlock(origin,
-                        new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
+                new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
         ParticleRender.render(player, ParticleData.of(ParticleType.VIBRATION, option),
                 start.getX(), start.getY(), start.getZ());
         sender.sendMessage("Vibration sent to " + (entityDestination ? "you" : "the block ahead") + ".");
