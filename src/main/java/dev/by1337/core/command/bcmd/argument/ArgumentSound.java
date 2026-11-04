@@ -1,6 +1,8 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.lang.Lang;
+import dev.by1337.core.util.text.MessageFormatter;
 import dev.by1337.core.command.bcmd.argument.util.NamespacedKeyTrie;
 import org.bukkit.Registry;
 import org.bukkit.Sound;
@@ -26,7 +28,7 @@ public class ArgumentSound<C> extends Argument<C, Sound> {
         Sound value = lookup(input);
         if (value == null) {
             List<String> suggestions = LOOKUP.getWordsWithPrefix("", 5);
-            throw new CommandMsgError("Unknown " + name + ": " + str + ", did you mean: " + String.join(", ", suggestions));
+            throw new CommandMsgError(MessageFormatter.apply(Lang.getMessage("unknown-constant"), name, str, String.join(", ", suggestions)));
         }
         out.put(name, value);
     }
