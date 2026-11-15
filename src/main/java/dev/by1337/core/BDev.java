@@ -6,6 +6,7 @@ import dev.by1337.core.bridge.location.LocationBar;
 import dev.by1337.core.bridge.nbt.NbtBridge;
 import dev.by1337.core.bridge.world.BlockEntityUtil;
 import dev.by1337.core.command.bcmd.CommandWrapper;
+import dev.by1337.core.command.bcmd.CommandMessages;
 import dev.by1337.core.command.bcmd.TestCommand;
 import dev.by1337.core.command.bcmd.argument.ArgumentInt;
 import dev.by1337.core.command.bcmd.argument.ArgumentPlayers;
@@ -57,6 +58,7 @@ public class BDev extends JavaPlugin {
     @Override
     public void onLoad() {
         Bootstrap.onLoadBoot(this);
+        CommandMessages.load(this);
         try {
             BLibBridge.load(this);
         } catch (Exception e) {
@@ -235,7 +237,7 @@ public class BDev extends JavaPlugin {
         VibrationParticleOption option = entityDestination
                 ? VibrationParticleOption.toEntity(origin, player.getEntityId(), 0.0f, 30)
                 : VibrationParticleOption.toBlock(origin,
-                new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
+                        new VibrationParticleOption.BlockPos(target.getBlockX(), target.getBlockY(), target.getBlockZ()), 30);
         ParticleRender.render(player, ParticleData.of(ParticleType.VIBRATION, option),
                 start.getX(), start.getY(), start.getZ());
         sender.sendMessage("Vibration sent to " + (entityDestination ? "you" : "the block ahead") + ".");

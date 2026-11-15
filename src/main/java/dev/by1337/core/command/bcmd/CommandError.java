@@ -10,6 +10,6 @@ public class CommandError extends CommandMsgError {
     }
 
     public CommandError(String message, Object... args) {
-        super(MessageFormatter.apply(message, message));
+        super(MessageFormatter.apply(message, args));
     }
 }

@@ -3,7 +3,6 @@ package dev.by1337.core.command.bcmd;
 
 import com.destroystokyo.paper.event.brigadier.AsyncPlayerSendSuggestionsEvent;
 import com.mojang.brigadier.context.StringRange;
-import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.by1337.cmd.Command;
@@ -56,6 +55,8 @@ public class CommandWrapper extends BukkitCommand implements Listener {
         try {
             command.execute(sender, String.join(" ", args));
             return true;
+        } catch (ArgumentParseError e) {
+            CommandMessages.send(sender, e);
         } catch (CommandMsgError e) {
             sender.sendMessage(MiniMessage.deserialize(e.getMessage()));
         }
@@ -66,6 +67,8 @@ public class CommandWrapper extends BukkitCommand implements Listener {
     public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
         try {
             return command.suggest(sender, String.join(" ", args)).toList();
+        } catch (CommandMsgError e) {
+            return List.of();
         } catch (Exception e) {
             plugin.getSLF4JLogger().error("Failed to tabComplete", e);
         }
@@ -84,30 +87,19 @@ public class CommandWrapper extends BukkitCommand implements Listener {
             String cmd = reader.readString();
             reader.skip();
             if (allPossibleNames.contains(cmd)) {
-                if (input.contains(" <=")) { // error msg in input?
-                    String real = input.substring(0, input.indexOf(" <="));
-                    StringRange r = new StringRange(0, real.length());
-                    event.setSuggestions(new Suggestions(new StringRange(0, input.length()), List.of(
-                            new Suggestion(r, real)
-                    )));
-                } else {
-                    try {
-                        SuggestionsList list = command.suggest(event.getPlayer(), reader);
-                        if (list == null || list.count() == 0) {
-                            event.setSuggestions(EMPTY_SUGGESTIONS);
-                        } else {
-                            SuggestionsBuilder builder = new SuggestionsBuilder(input, Math.min(input.length(), list.start()));
-                            list.forEach(b -> builder.suggest(b));
-                            event.setSuggestions(builder.build());
-                        }
-                    } catch (CommandMsgError e) {
-                        StringRange r = new StringRange(0, input.length());
-                        event.setSuggestions(new Suggestions(r, List.of(
-                                new Suggestion(r, input + " <= " + e.getMessage())
-                        )));
+                try {
+                    SuggestionsList list = command.suggest(event.getPlayer(), reader);
+                    if (list == null || list.count() == 0) {
+                        event.setSuggestions(EMPTY_SUGGESTIONS);
+                    } else {
+                        SuggestionsBuilder builder = new SuggestionsBuilder(input, Math.min(input.length(), list.start()));
+                        list.forEach(builder::suggest);
+                        event.setSuggestions(builder.build());
                     }
-
+                } catch (CommandMsgError e) {
+                    event.setSuggestions(EMPTY_SUGGESTIONS);
                 }
+
             }
         }
     }

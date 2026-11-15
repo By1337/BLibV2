@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.command.bcmd.ArgumentParseError;
 import dev.by1337.core.command.bcmd.argument.util.NamespacedKeyTrie;
 import org.bukkit.Registry;
 import org.bukkit.Sound;
@@ -26,7 +27,7 @@ public class ArgumentSound<C> extends Argument<C, Sound> {
         Sound value = lookup(input);
         if (value == null) {
             List<String> suggestions = LOOKUP.getWordsWithPrefix("", 5);
-            throw new CommandMsgError("Unknown " + name + ": " + str + ", did you mean: " + String.join(", ", suggestions));
+            throw new ArgumentParseError("unknown-value", name, str, String.join(", ", suggestions));
         }
         out.put(name, value);
     }
@@ -45,7 +46,7 @@ public class ArgumentSound<C> extends Argument<C, Sound> {
     @Override
     public void suggest(C ctx, CommandReader reader, SuggestionsList suggestions, ArgumentMap args) throws CommandMsgError {
         String str = reader.readString();
-        LOOKUP.getWordsWithPrefix(str, 15).forEach(suggestions::suggest);
+        LOOKUP.getWordsWithPrefix(str.toLowerCase(Locale.ENGLISH), 15).forEach(suggestions::suggest);
     }
 
     @Override
@@ -60,9 +61,8 @@ public class ArgumentSound<C> extends Argument<C, Sound> {
 
             LOOKUP_ALTS.insert(key.toString(), sound);
             LOOKUP_ALTS.insert(key.getKey()
-                            .replace(".", "")
-                            .replace("_", "")
-                    , sound);
+                    .replace(".", "")
+                    .replace("_", ""), sound);
         });
     }
 }

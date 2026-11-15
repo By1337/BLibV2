@@ -7,13 +7,27 @@ public class FastExpressionParser {
     private static final double TRUE = 1.0;
     private static final double FALSE = 0.0;
 
+    public enum Mode {
+        /** Original expressions, including string hashes, comparisons and functions. */
+        DEFAULT,
+        /** Finite arithmetic with parentheses and numeric suffixes; no words or functions. */
+        NUMBERS_ONLY
+    }
+
     public static double parse(String input) throws MathFormatException {
-        ExpReader reader = new ExpReader(input);
-        double d = logical(reader);
-        if (reader.next() != '\0') {
-            throw reader.expected("EOF");
-        }
-        return d;
+        return parse(input, Mode.DEFAULT);
+    }
+
+    public static double parse(String input, Mode mode) throws MathFormatException {
+        ExpReader reader = new ExpReader(input, java.util.Objects.requireNonNull(mode));
+        double value = expression(reader);
+        if (reader.next() != '\0') throw reader.expected("EOF");
+        if (reader.numeric && !Double.isFinite(value)) throw reader.expected("finite number");
+        return value;
+    }
+
+    private static double expression(ExpReader reader) {
+        return reader.numeric ? plusMinus(reader) : logical(reader);
     }
 
     private static double logical(ExpReader reader) {
@@ -134,21 +148,23 @@ public class FastExpressionParser {
         if (c == '-') {
             return -factor(reader);
         }
+        if (reader.numeric && c == '+') return factor(reader);
         if (c == '(') {
-            double value = logical(reader);
+            double value = expression(reader);
             if (reader.next() != ')') {
                 throw reader.expected(')');
             }
             return value;
         }
-        if (c == '!') {
+        if (!reader.numeric && c == '!') {
             double v = factor(reader);
             return v == TRUE ? FALSE : TRUE;
         }
         reader.back();
-        if (c >= '0' && c <= '9') {
+        if ((c >= '0' && c <= '9') || (reader.numeric && c == '.')) {
             return readNumber(reader);
         }
+        if (reader.numeric) throw reader.expected("number");
         return readString(reader);
     }
 
@@ -166,6 +182,7 @@ public class FastExpressionParser {
         int expValue = 0;
         boolean hasDot = false;
         boolean hasExp = false;
+        boolean hasDigit = false;
 
         char c = reader.next();
 
@@ -177,9 +194,9 @@ public class FastExpressionParser {
 
         double fracMultiplier = 0.1;
 
-        outer:
-        while (true) {
+        outer: while (true) {
             if (c >= '0' && c <= '9') {
+                hasDigit = true;
                 if (!hasDot) {
                     intPart = intPart * 10 + (c - '0');
                 } else {
@@ -196,6 +213,7 @@ public class FastExpressionParser {
                     if (!reader.hasNext()) throw reader.expected("digit");
                     c = reader.next();
                 }
+                if (reader.numeric && (c < '0' || c > '9')) throw reader.expected("exponent digit");
                 while (c >= '0' && c <= '9') {
                     expValue = expValue * 10 + (c - '0');
                     if (!reader.hasNext()) break outer;
@@ -211,6 +229,7 @@ public class FastExpressionParser {
             c = reader.next();
         }
 
+        if (reader.numeric && !hasDigit) throw reader.expected("digit");
         double result = intPart + fracPart;
 
         if (hasExp && expValue != 0) {
@@ -221,12 +240,13 @@ public class FastExpressionParser {
                 result *= Math.pow(10, exp);
             }
         }
-        loop:
-        while (reader.hasNext()) {
+        loop: while (reader.hasNext()) {
             c = reader.next();
             switch (c) {
                 case 'k', 'K', 'к', 'К' -> result *= 1000;
                 case 'm', 'M', 'м', 'М' -> result *= 1_000_000;
+                case 'b', 'B' -> result *= 1_000_000_000;
+                case 't', 'T', 'т', 'Т' -> result *= 1_000_000_000_000L;
                 default -> {
                     reader.back();
                     break loop;
@@ -337,8 +357,7 @@ public class FastExpressionParser {
         int hash = 0;
         int length = 0;
 
-        loop:
-        while (reader.hasNext()) {
+        loop: while (reader.hasNext()) {
             char c = reader.next();
             switch (c) {
                 case ' ':
@@ -394,10 +413,16 @@ public class FastExpressionParser {
         private int ridx;
         private final String exp;
         private final int size;
+        private final boolean numeric;
 
         public ExpReader(String exp) {
+            this(exp, Mode.DEFAULT);
+        }
+
+        private ExpReader(String exp, Mode mode) {
             this.exp = exp;
             size = exp.length();
+            this.numeric = mode == Mode.NUMBERS_ONLY;
         }
 
 

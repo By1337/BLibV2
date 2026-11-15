@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.command.bcmd.ArgumentParseError;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -26,7 +27,7 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
         String str = reader.readString();
         if (str.isEmpty()) return;
         if ((str.equals("-all") || str.equals("*")) && !single) {
-            out.put(name, Bukkit.getOnlinePlayers());
+            out.put(name, List.copyOf(Bukkit.getOnlinePlayers()));
             return;
         }
 
@@ -43,23 +44,23 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
                 }
             }
             if (pl == null)
-                throw new CommandMsgError("Unknown player: " + str);
+                throw new ArgumentParseError("unknown-player", name, str, "online player");
         }
         out.put(name, List.of(pl));
     }
 
     @Override
     public void suggest(C ctx, CommandReader reader, SuggestionsList suggestions, ArgumentMap args) throws CommandMsgError {
-        String str = reader.readString().toLowerCase();
+        String str = reader.readString().toLowerCase(java.util.Locale.ROOT);
         if (!single) {
-            suggestions.suggest("-all");
-            suggestions.suggest("*");
+            if ("-all".startsWith(str)) suggestions.suggest("-all");
+            if ("*".startsWith(str)) suggestions.suggest("*");
         }
         if (ctx instanceof Player) {
-            suggestions.suggest("-me");
+            if ("-me".startsWith(str)) suggestions.suggest("-me");
         }
         if ((str.equals("-all") || str.equals("*")) && !single) {
-            args.put(name, Bukkit.getOnlinePlayers());
+            args.put(name, List.copyOf(Bukkit.getOnlinePlayers()));
             return;
         }
         var pl = Bukkit.getPlayerExact(str);
@@ -68,7 +69,7 @@ public class ArgumentPlayers<C> extends Argument<C, List<Player>> {
             args.put(name, List.of(pl));
         } else {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getName().toLowerCase().startsWith(str)) {
+                if (player.getName().toLowerCase(java.util.Locale.ROOT).startsWith(str)) {
                     suggestions.suggest(player.getName());
                 }
                 if (!suggestions.hasFree()) {

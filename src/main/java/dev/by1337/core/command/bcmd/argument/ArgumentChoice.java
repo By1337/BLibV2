@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.command.bcmd.ArgumentParseError;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -22,27 +23,22 @@ public class ArgumentChoice<C> extends Argument<C, String> {
     @Override
     public void parse(C ctx, CommandReader reader, ArgumentMap out) throws CommandMsgError {
         String str = reader.readString();
+        if (str.isEmpty()) return;
         var list = exx.get();
         if (list.contains(str)) {
             out.put(name, str);
+        } else {
+            throw new ArgumentParseError("invalid-choice", name, str, String.join(", ", list));
         }
     }
 
     @Override
     public void suggest(C ctx, CommandReader reader, SuggestionsList suggestions, ArgumentMap args) throws CommandMsgError {
-        reader.readString();
-        var list = exx.get();
-        if (list.size() < 30) {
-            for (String string : list) {
-                suggestions.suggest(string);
-            }
-        } else {
-            int i = 0;
-            for (String string : list) {
-                suggestions.suggest(string);
-                if (i++ >= 30) {
-                    return;
-                }
+        String input = reader.readString();
+        for (String value : exx.get()) {
+            if (value.startsWith(input)) {
+                suggestions.suggest(value);
+                if (!suggestions.hasFree()) return;
             }
         }
     }

@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.command.bcmd.ArgumentParseError;
 import dev.by1337.core.command.bcmd.argument.util.NamespacedKeyTrie;
 import org.bukkit.Keyed;
 
@@ -42,7 +43,7 @@ public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
         E value = lookup.search(input);
         if (value == null) {
             List<String> suggestions = lookup.getWordsWithPrefix("", 5);
-            throw new CommandMsgError("Unknown " + name + ": " + str + ", did you mean: " + String.join(", ", suggestions));
+            throw new ArgumentParseError("unknown-value", name, str, String.join(", ", suggestions));
         }
         out.put(name, value);
     }
@@ -51,7 +52,7 @@ public class ArgumentRegistry<C, E extends Keyed> extends Argument<C, E> {
     public void suggest(C ctx, CommandReader reader, SuggestionsList suggestions, ArgumentMap args) throws CommandMsgError {
         String str = reader.readString();
         //todo триграммы?
-        lookup.getWordsWithPrefix(str, 15).forEach(suggestions::suggest);
+        lookup.getWordsWithPrefix(str.toLowerCase(Locale.ENGLISH), 15).forEach(suggestions::suggest);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package dev.by1337.core.command.bcmd.argument;
 
 import dev.by1337.cmd.*;
+import dev.by1337.core.command.bcmd.ArgumentParseError;
 import dev.by1337.core.util.math.FastExpressionParser;
 import org.bukkit.entity.Player;
 
@@ -23,9 +24,9 @@ public class ArgumentInt<C> extends Argument<C, Integer> {
         String str = reader.readString();
         if (str.isEmpty()) return;
         try {
-            out.put(name, (int) FastExpressionParser.parse(str));
-        } catch (FastExpressionParser.MathFormatException e) {
-            throw new CommandMsgError("must be a number");
+            out.put(name, (int) FastExpressionParser.parse(str, FastExpressionParser.Mode.NUMBERS_ONLY));
+        } catch (IllegalArgumentException e) {
+            throw new ArgumentParseError("invalid-number", name, str, "number or math expression");
         }
     }
 
@@ -40,16 +41,16 @@ public class ArgumentInt<C> extends Argument<C, Integer> {
             int x = 32;
             if (ctx instanceof Player pl) {
                 var item = pl.getInventory().getItemInMainHand();
-                x = item == null && item.getAmount() != 0 ? 32 : item.getAmount();
+                x = item == null || item.getAmount() == 0 ? 32 : item.getAmount();
             }
             suggestions.suggest(str = (str + x));
         }
         try {
-            int d = (int) FastExpressionParser.parse(str);
+            int d = (int) FastExpressionParser.parse(str, FastExpressionParser.Mode.NUMBERS_ONLY);
             args.put(name, d);
             suggestions.suggest(Integer.toString(d));
-        } catch (FastExpressionParser.MathFormatException e) {
-            throw new CommandMsgError("must be a number");
+        } catch (IllegalArgumentException e) {
+            throw new ArgumentParseError("invalid-number", name, str, "number or math expression");
         }
     }
 

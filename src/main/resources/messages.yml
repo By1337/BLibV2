@@ -1,0 +1,21 @@
+# Ошибки аргументов команд BLib и зависимых плагинов.
+# EventDSL: вместо строки можно указать список действий (message, action_bar и т.д.).
+# BPlaceholder: {argument} — имя аргумента, {input} — ввод, {expected} — допустимые значения.
+$lang: ru_RU
+
+invalid-boolean: '<red>Не удалось понять «{input}». <gray>Введите <yellow>true</yellow> (да) или <yellow>false</yellow> (нет).'
+invalid-number: '<red>Не удалось прочитать число «{input}». <gray>Например: <yellow>10</yellow>, <yellow>1k</yellow> или <yellow>(5+3)*2</yellow>.'
+invalid-choice: '<red>Вариант «{input}» недоступен. <gray>Выберите один из вариантов: <yellow>{expected}</yellow>.'
+unknown-player: '<red>Игрок «{input}» сейчас не в сети. <gray>Проверьте ник или выберите игрока с помощью <yellow>Tab</yellow>.'
+unknown-value: '<red>Не удалось найти «{input}». <gray>Нажмите <yellow>Tab</yellow>, чтобы выбрать подходящий вариант.'
+unknown-item: '<red>Предмет «{input}» не найден. <gray>Нажмите <yellow>Tab</yellow>, чтобы выбрать доступный предмет.'
+
+---
+$lang: en_US
+
+invalid-boolean: '<red>Could not understand "{input}". <gray>Enter <yellow>true</yellow> (yes) or <yellow>false</yellow> (no).'
+invalid-number: '<red>Could not read "{input}" as a number. <gray>Try <yellow>10</yellow>, <yellow>1k</yellow> or <yellow>(5+3)*2</yellow>.'
+invalid-choice: '<red>"{input}" is not available. <gray>Choose one of these options: <yellow>{expected}</yellow>.'
+unknown-player: '<red>Player "{input}" is not online right now. <gray>Check the name or press <yellow>Tab</yellow> to choose a player.'
+unknown-value: '<red>Could not find "{input}". <gray>Press <yellow>Tab</yellow> to choose an available option.'
+unknown-item: '<red>Item "{input}" was not found. <gray>Press <yellow>Tab</yellow> to choose an available item.'
