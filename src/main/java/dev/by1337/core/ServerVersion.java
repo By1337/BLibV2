@@ -3,6 +3,7 @@ package dev.by1337.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
+import dev.by1337.leaf.api.StableComponents;
 import org.bukkit.Bukkit;
 
 import java.io.FileNotFoundException;
@@ -14,6 +15,7 @@ public final class ServerVersion {
     public static final String CURRENT_ID;
     public static final int CURRENT;
     public static final int CURRENT_PROTOCOL;
+    public static final boolean IS_BDEV;
 
     public static final int V1_16_5 = toInt("1.16.5");
     public static final int V1_17 = toInt("1.17");
@@ -145,6 +147,13 @@ public final class ServerVersion {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        boolean b = false;
+        try {
+            Class.forName("dev.by1337.leaf.api.StableComponents");
+            b = true;
+        } catch (ClassNotFoundException ignored) {
+        }
+        IS_BDEV = b;
     }
 
     public static boolean is1_16_5() {

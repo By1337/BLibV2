@@ -1,6 +1,7 @@
 package dev.by1337.core.util.text;
 
 import dev.by1337.core.ServerVersion;
+import dev.by1337.leaf.api.StableComponents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 
@@ -25,6 +26,9 @@ public final class AdventureAdapter {
     }
 
     public static Component stable(Component c) {
+        if (ServerVersion.IS_BDEV){
+            return StableComponents.stable(c);
+        }
         return c;
     }
 }
