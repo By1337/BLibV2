@@ -1,0 +1,12 @@
+ru_RU:
+  time.format.years: {} г.
+  time.format.years.months: {} г. {} мес.
+  time.format.months: {} мес.
+  time.format.months.days: {} мес. {} дн.
+  time.format.days: {} дн.
+  time.format.days.hours: {} дн. {} ч.
+  time.format.hours: {} ч.
+  time.format.hours.minutes: {} ч. {} мин.
+  time.format.minutes: {} мин.
+  time.format.minutes.seconds: {} мин. {} сек.
+  time.format.seconds: {} сек.

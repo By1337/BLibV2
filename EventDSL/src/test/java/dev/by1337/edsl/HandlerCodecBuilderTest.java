@@ -1,0 +1,284 @@
+package dev.by1337.edsl;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import dev.by1337.cmd.Command;
+import dev.by1337.cmd.argument.ArgumentStrings;
+import dev.by1337.edsl.context.EventContext;
+import dev.by1337.yaml.YamlMap;
+import dev.by1337.yaml.YamlValue;
+import dev.by1337.yaml.codec.DataResult;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class HandlerCodecBuilderTest {
+    private static AtomicReference<List<String>> response = new AtomicReference<>(new ArrayList<>());
+    private static final Command<EventContext> command = new Command<EventContext>("root")
+            .sub(new Command<EventContext>("[response]")
+                    .argument(new ArgumentStrings<>("value"))
+                    .executor((v, args) -> {
+                        response.get().add((String) args.get("value"));
+                    })
+            );
+
+    @Test
+    void run() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  if: '100 == 100'
+                  do: '[response] 1'
+                  else: '[response] 2'"""));
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+        assertEquals(List.of("1"), response.get());
+    }
+
+    @Test
+    void run2() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - if: '100 == 100'
+                    do: '[response] 1'
+                  - if: '99 == 99'
+                    do: '[response] 2'"""));
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+        assertEquals(List.of("1", "2"), response.get());
+    }
+
+    @Test
+    void ifElse() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - if: '1 == 2'
+                        do: '[response] ok'
+                        else: '[response] fail'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("fail"), response.get());
+    }
+
+    @Test
+    void multipleDoCommands() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - if: '1 == 1'
+                        do:
+                          - '[response] a'
+                          - '[response] b'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("a", "b"), response.get());
+    }
+
+    @Test
+    void nestedIf() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - if: '1 == 1'
+                        do:
+                          if: '2 == 2'
+                          do: '[response] nested'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("nested"), response.get());
+    }
+
+    @Test
+    void nestedIfFalse() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - if: '1 == 1'
+                    do:
+                      if: '2 == 3'
+                      do: '[response] nested'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of(), response.get());
+    }
+
+    @Test
+    void doWithoutIf() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - do: '[response] always'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("always"), response.get());
+    }
+
+    @Test
+    void oneOfFirstMatch() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - oneOf:
+                      - if: '1 == 2'
+                        do: '[response] a'
+                      - if: '2 == 2'
+                        do: '[response] b'
+                      - do: '[response] c'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("b"), response.get());
+    }
+
+    @Test
+    void oneOfFallback() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - oneOf:
+                      - if: '1 == 2'
+                        do: '[response] a'
+                      - if: '2 == 3'
+                        do: '[response] b'
+                      - do: '[response] fallback'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("fallback"), response.get());
+    }
+
+    @Test
+    void oneOfStopsAfterSuccess() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - oneOf:
+                      - if: '1 == 1'
+                        do: '[response] first'
+                      - if: '1 == 1'
+                        do: '[response] second'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("first"), response.get());
+    }
+
+    @Test
+    void orderExecution() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - do: '[response] 1'
+                      - do: '[response] 2'
+                      - do: '[response] 3'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("1", "2", "3"), response.get());
+    }
+
+    @Test
+    void ifFalseNoElse() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - if: '1 == 2'
+                    do: '[response] fail'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of(), response.get());
+    }
+
+    @Test
+    void elseList() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                    test:
+                      - if: '1 == 2'
+                        do: '[response] ok'
+                        else:
+                          - '[response] a'
+                          - '[response] b'
+                """));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handle(new EventContext(false).setCommand(command));
+
+        assertEquals(List.of("a", "b"), response.get());
+    }
+    //      on_place:
+    //        - nearby-10:
+    //            - if: '%player_name% != {target:player_name}'
+    //              do:
+    //                - console: say give bad effect {target:player_name}
+    //            - bc: '%player_name% -> {target:player_name}'
+
+    @Test
+    void printerTest() {
+        YamlMap map = YamlMap.load(new StringReader("""
+                test:
+                  - weights:
+                      10,7:
+                        - test: 123
+                      20,9:
+                        - test2: 321
+                  - test:
+                      value1: '123'
+                      value2: '321'"""));
+
+        EventHandler e = decodeTest(map.get("test"));
+        response.get().clear();
+        e.handleAndClose(new EventContext(false).setCommand(command));
+        e.handleAndClose(new EventContext(false).setCommand(command));
+
+        // assertEquals(List.of("fallback"), response.get());
+    }
+
+
+    private static final Gson gson = new GsonBuilder()
+            .disableHtmlEscaping()
+            .setPrettyPrinting()
+            .create();
+
+    private static EventHandler decodeTest(YamlValue v) {
+        DataResult<EventHandler> res = EventHandler.decoder().decode(v);
+        if (res.hasError()) {
+            System.out.println(res.error());
+        }
+        EventHandler t = res.result();
+        if (t == null) {
+            res.getOrThrow();
+        }
+        return t;
+    }
+}

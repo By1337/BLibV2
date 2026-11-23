@@ -1,0 +1,20 @@
+#language_country
+$lang: ru_RU
+
+hello: '<{color1}>Привет!'
+
+---
+$lang: en_US
+
+hello: '<{color1}>Hello!'
+on_apply:
+  - nearby-10:
+      - sound: item.firecharge.use 1 0
+      - if:
+          - '{is_clan_team} == false'
+          - '{is_allow} == true'
+        do:
+          - ref: hello
+          - distanced_effect: 'blindness 0 60 10'
+          - distanced_effect: 'glowing 0 100 10'
+          - distanced_fire_ticks: '60 10'
