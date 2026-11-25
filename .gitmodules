@@ -1,9 +1,9 @@
 [submodule "BCmd"]
 	path = BCmd
-	url = /home/by1337/Projects/src_java/blib/BLibv2/.git/local-remotes/BCmd.git
+	url = https://github.com/By1337/BCmd.git
 [submodule "BYaml"]
 	path = BYaml
-	url = /home/by1337/Projects/src_java/blib/BLibv2/.git/local-remotes/BYaml.git
+	url = https://github.com/By1337/BYaml.git
 [submodule "CfgItems"]
 	path = CfgItems
-	url = /home/by1337/Projects/src_java/blib/BLibv2/.git/local-remotes/CfgItems.git
+	url = https://github.com/By1337/ConfigurableItems.git
