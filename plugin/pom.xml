@@ -11,6 +11,7 @@
     <properties>
         <java.version>16</java.version>
         <bpatch.version>1.0.0</bpatch.version>
+        <particle-render.version>2.3</particle-render.version>
         <java.source>16</java.source>
         <java.target>16</java.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -343,13 +344,13 @@
         <dependency>
             <groupId>dev.by1337.particle</groupId>
             <artifactId>render-bukkit</artifactId>
-            <version>2.3</version>
+            <version>${particle-render.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>dev.by1337.particle</groupId>
             <artifactId>flow</artifactId>
-            <version>2.3</version>
+            <version>${particle-render.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
