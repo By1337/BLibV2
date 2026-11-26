@@ -10,7 +10,7 @@
 
     <properties>
         <java.version>16</java.version>
-        <bpatch.version>1.0.0</bpatch.version>
+        <bpatch.version>1.0.1</bpatch.version>
         <particle-render.version>2.3</particle-render.version>
         <java.source>16</java.source>
         <java.target>16</java.target>
